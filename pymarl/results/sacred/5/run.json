@@ -1,0 +1,99 @@
+{
+  "artifacts": [],
+  "command": "my_main",
+  "experiment": {
+    "base_dir": "/Users/haydengu/Documents/Research Project/smac_plus/pymarl/src",
+    "dependencies": [
+      "numpy==1.24.4",
+      "PyYAML==5.3.1",
+      "sacred==0.8.5",
+      "torch==2.3.1"
+    ],
+    "mainfile": "main.py",
+    "name": "pymarl",
+    "repositories": [
+      {
+        "commit": "143746961c28b3c440b5659b78c99ad925d90536",
+        "dirty": true,
+        "url": "https://github.com/osilab-kaist/smac_plus.git"
+      },
+      {
+        "commit": "143746961c28b3c440b5659b78c99ad925d90536",
+        "dirty": true,
+        "url": "https://github.com/osilab-kaist/smac_plus.git"
+      },
+      {
+        "commit": "143746961c28b3c440b5659b78c99ad925d90536",
+        "dirty": true,
+        "url": "https://github.com/osilab-kaist/smac_plus.git"
+      }
+    ],
+    "sources": [
+      [
+        "main.py",
+        "_sources/main_65d7e2bf3572ad516cc1886629b0704d.py"
+      ],
+      [
+        "run.py",
+        "_sources/run_1a4d86dfe77f9d2dfcb8e252827c428d.py"
+      ],
+      [
+        "utils/logging.py",
+        "_sources/logging_c065e725400d556ffa8e8858e791745e.py"
+      ]
+    ]
+  },
+  "heartbeat": "2024-07-12T12:58:38.513190",
+  "host": {
+    "ENV": {},
+    "cpu": "Apple M2 Max",
+    "hostname": "Xingrui-Gu.local",
+    "os": [
+      "Darwin",
+      "macOS-14.5-arm64-arm-64bit"
+    ],
+    "python_version": "3.8.19"
+  },
+  "meta": {
+    "command": "my_main",
+    "config_updates": {
+      "env_args": {
+        "map_name": "offense_hard"
+      }
+    },
+    "named_configs": [],
+    "options": {
+      "--beat-interval": null,
+      "--capture": null,
+      "--comment": null,
+      "--debug": false,
+      "--enforce_clean": false,
+      "--file_storage": null,
+      "--force": false,
+      "--help": false,
+      "--id": null,
+      "--loglevel": null,
+      "--mongo_db": null,
+      "--name": null,
+      "--pdb": false,
+      "--print-config": false,
+      "--priority": null,
+      "--queue": false,
+      "--s3": null,
+      "--sql": null,
+      "--tiny_db": null,
+      "--unobserved": false,
+      "COMMAND": null,
+      "UPDATE": [
+        "env_args.map_name=offense_hard"
+      ],
+      "help": false,
+      "with": true
+    }
+  },
+  "resources": [],
+  "result": null,
+  "start_time": "2024-07-12T12:49:14.619231",
+  "status": "INTERRUPTED",
+  "stop_time": "2024-07-12T12:58:38.515090"
+}

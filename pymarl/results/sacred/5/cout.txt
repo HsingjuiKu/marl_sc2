@@ -1,0 +1,147 @@
+[INFO 20:49:14] pymarl Running command 'my_main'
+[INFO 20:49:14] pymarl Started run with ID "5"
+[DEBUG 20:49:14] pymarl Starting Heartbeat
+[DEBUG 20:49:14] my_main Started
+[WARNING 20:49:14] my_main CUDA flag use_cuda was switched OFF automatically because no CUDA devices are available!
+[INFO 20:49:14] my_main Experiment Parameters:
+[INFO 20:49:14] my_main 
+
+{   'action_selector': 'epsilon_greedy',
+    'add_value_last_step': True,
+    'agent': 'rnn',
+    'agent_output_type': 'q',
+    'batch_size': 32,
+    'batch_size_run': 1,
+    'buffer_algo': None,
+    'buffer_chunk_size': None,
+    'buffer_cpu_only': True,
+    'buffer_device': None,
+    'buffer_mode': 'transitions',
+    'buffer_size': 5000,
+    'checkpoint_path': '',
+    'continuous_actions': False,
+    'critic_lr': 0.0005,
+    'debug': False,
+    'decay': 'linear',
+    'double_q': True,
+    'env': 'sc2',
+    'env_args': {   'continuing_episode': False,
+                    'debug': False,
+                    'difficulty': '7',
+                    'game_version': None,
+                    'heuristic_ai': False,
+                    'heuristic_rest': False,
+                    'map_name': 'offense_hard',
+                    'move_amount': 2,
+                    'obs_all_health': True,
+                    'obs_broadcast_info': False,
+                    'obs_communicate_info': True,
+                    'obs_instead_of_state': True,
+                    'obs_last_action': True,
+                    'obs_own_health': True,
+                    'obs_pathing_grid': True,
+                    'obs_terrain_height': True,
+                    'obs_timestep_number': False,
+                    'replay_dir': '',
+                    'replay_prefix': '',
+                    'reward_death_value': 10,
+                    'reward_defeat': 0,
+                    'reward_negative_scale': 0.5,
+                    'reward_only_positive': True,
+                    'reward_scale': True,
+                    'reward_scale_rate': 20,
+                    'reward_sparse': False,
+                    'reward_win': 200,
+                    'seed': 24747122,
+                    'state_last_action': True,
+                    'state_timestep_number': False,
+                    'step_mul': 8},
+    'epsilon_anneal_time': 50000,
+    'epsilon_finish': 0.05,
+    'epsilon_mid': 'None',
+    'epsilon_mid_time': 'None',
+    'epsilon_start': 1.0,
+    'evaluate': False,
+    'gamma': 0.99,
+    'grad_norm_clip': 10,
+    'hidden_dim': 64,
+    'hypernet_embed': 64,
+    'hypernet_layers': 2,
+    'label': 'default_label',
+    'learn_interval': 100,
+    'learner': 'q_learner',
+    'learner_log_interval': 10000,
+    'load_step': 0,
+    'local_results_path': './results',
+    'log_interval': 10000,
+    'lr': 0.0005,
+    'mac': 'basic_mac',
+    'mixer': 'qmix',
+    'mixing_embed_dim': 32,
+    'n_runners': 1,
+    'n_train': 1,
+    'name': 'qmix',
+    'obs_agent_id': True,
+    'obs_last_action': True,
+    'optim_alpha': 0.99,
+    'optim_eps': 1e-05,
+    'optimizer': 'RMSProp',
+    'plot_loss_network': False,
+    'recurrent_critic': False,
+    'repeat_id': 1,
+    'reward_multi_stage': {   'reward_alt_end_ratio': 0,
+                              'reward_alt_end_step': 5000,
+                              'reward_alt_method': 'linear',
+                              'reward_alt_start_ratio': 0},
+    'rnn_hidden_dim': 64,
+    'run_mode': 'sequential',
+    'runner': 'episode',
+    'runner_log_interval': 10000,
+    'runner_scope': 'episodic',
+    'save_model': True,
+    'save_model_interval': 200000,
+    'save_replay': False,
+    'seed': 24747122,
+    't_max': 10050000,
+    'target_update_interval': 200,
+    'target_update_mode': 'hard',
+    'test_greedy': True,
+    'test_interval': 10000,
+    'test_nepisode': 32,
+    'testing_on': True,
+    'use_buffer_compression': False,
+    'use_cuda': False,
+    'use_tensorboard': True,
+    'verbose': False}
+
+[INFO 20:49:17] my_main Beginning training for 10050000 timesteps
+[INFO 20:49:17] absl Launching SC2: /Applications/StarCraft II/Versions/Base92440/SC2.app/Contents/MacOS/SC2 -listen 127.0.0.1 -port 50130 -dataDir /Applications/StarCraft II/ -tempDir /var/folders/ww/6n9cccss24g7s1y2w9tj4kvm0000gn/T/sc-r_hf51ns/ -displayMode 0 -windowwidth 1920 -windowheight 1200 -windowx 50 -windowy 50
+[INFO 20:49:17] absl Connecting to: ws://127.0.0.1:50130/sc2api, attempt: 0, running: True
+[INFO 20:49:18] absl Connecting to: ws://127.0.0.1:50130/sc2api, attempt: 1, running: True
+[INFO 20:49:19] absl Connecting to: ws://127.0.0.1:50130/sc2api, attempt: 2, running: True
+[INFO 20:49:20] absl Connecting to: ws://127.0.0.1:50130/sc2api, attempt: 3, running: True
+[INFO 20:49:21] absl Connecting to: ws://127.0.0.1:50130/sc2api, attempt: 4, running: True
+[INFO 20:49:22] absl Connecting to: ws://127.0.0.1:50130/sc2api, attempt: 5, running: True
+[INFO 20:49:23] absl Connecting to: ws://127.0.0.1:50130/sc2api, attempt: 6, running: True
+[INFO 20:49:24] absl Connecting to: ws://127.0.0.1:50130/sc2api, attempt: 7, running: True
+[INFO 20:49:25] absl Connecting to: ws://127.0.0.1:50130/sc2api, attempt: 8, running: True
+[INFO 20:49:26] absl Connecting to: ws://127.0.0.1:50130/sc2api, attempt: 9, running: True
+/Users/haydengu/Documents/Research Project/smac_plus/pymarl/src/components/episode_buffer.py:103: UserWarning: Creating a tensor from a list of numpy.ndarrays is extremely slow. Please consider converting the list to a single numpy.ndarray with numpy.array() before converting to a tensor. (Triggered internally at /Users/runner/work/pytorch/pytorch/pytorch/torch/csrc/utils/tensor_new.cpp:277.)
+  v = th.tensor(v, dtype=dtype, device=self.device)
+/Users/haydengu/Documents/Research Project/smac_plus/pymarl/src/components/episode_buffer.py:103: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
+  v = th.tensor(v, dtype=dtype, device=self.device)
+[INFO 20:49:37] my_main t_env: 120 / 10050000
+[INFO 20:49:37] my_main Estimated time left: 5 hours, 31 minutes, 33 seconds. Time passed: 20 seconds
+[INFO 20:50:22] my_main Saving models to ./results/models/qmix__2024-07-12_20-49-14/120
+[INFO 20:53:46] my_main Recent Stats | t_env:      10080 | Episode:       84
+battle_won_mean:           0.0000	dead_allies_mean:          0.0000	dead_enemies_mean:         0.0000	ep_length_mean:          120.0000
+epsilon:                   1.0000	grad_norm:               129.9545	loss:                      0.6401	q_taken_mean:              0.0318
+return_mean:               0.0000	return_std:                0.0000	target_mean:               0.1156	td_error_abs:              0.7590
+test_battle_won_mean:      0.0000	test_dead_allies_mean:     0.0000	test_dead_enemies_mean:    0.0000	test_ep_length_mean:     120.0000
+test_return_mean:          0.0000	test_return_std:           0.0000	
+[INFO 20:53:54] my_main t_env: 10200 / 10050000
+[INFO 20:53:54] my_main Estimated time left: 2 days, 23 hours, 8 minutes, 5 seconds. Time passed: 4 minutes, 37 seconds
+[INFO 20:58:34] absl Shutdown gracefully.
+[INFO 20:58:34] absl Shutdown with return code: -15
+[INFO 20:58:34] absl Launching SC2: /Applications/StarCraft II/Versions/Base92440/SC2.app/Contents/MacOS/SC2 -listen 127.0.0.1 -port 50502 -dataDir /Applications/StarCraft II/ -tempDir /var/folders/ww/6n9cccss24g7s1y2w9tj4kvm0000gn/T/sc-eios5yjq/ -displayMode 0 -windowwidth 1920 -windowheight 1200 -windowx 50 -windowy 50
+[INFO 20:58:34] absl Connecting to: ws://127.0.0.1:50502/sc2api, attempt: 0, running: True
