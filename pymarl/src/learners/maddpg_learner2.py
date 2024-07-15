@@ -3,7 +3,7 @@ from components.episode_buffer import EpisodeBatch
 from modules.critics.maddpg import MADDPGCritic
 import torch as th
 from torch.optim import RMSprop, Adam
-from redistribute import EnhancedCausalModel
+
 
 class MADDPGLearner:
     def __init__(self, mac, scheme, logger, args):
@@ -35,14 +35,6 @@ class MADDPGLearner:
             raise Exception("unknown optimizer {}".format(getattr(self.args, "optimizer", "rmsprop")))
 
         self.log_stats_t = -self.args.learner_log_interval - 1
-
-        # Initialize the EnhancedCausalModel for reward redistribution
-        self.redistribution_model = EnhancedCausalModel(
-            num_agents=self.n_agents,
-            obs_dim=self.args.obs_dim,
-            action_dim=self.n_actions,
-            device=self.args.device
-        )
 
     def train(self, batch: EpisodeBatch, t_env: int, episode_num: int):
         # Get the relevant quantities
@@ -136,15 +128,6 @@ class MADDPGLearner:
             self.logger.log_stat("pg_loss", pg_loss.item(), t_env)
             self.logger.log_stat("agent_grad_norm", agent_grad_norm, t_env)
             self.log_stats_t = t_env
-
-        # Reward redistribution
-        with th.no_grad():
-            obs = batch["obs"][:, :-1]
-            social_contribution_index = self.redistribution_model.calculate_social_contribution_index(obs, actions)
-            tax_rates = self.redistribution_model.calculate_tax_rates(social_contribution_index)
-            redistributed_rewards = self.redistribution_model.redistribute_rewards(rewards, social_contribution_index, tax_rates)
-
-        batch["reward"][:, :-1] = redistributed_rewards
 
     def _update_targets_soft(self, tau):
         for target_param, param in zip(self.target_mac.parameters(), self.mac.parameters()):
