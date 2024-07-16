@@ -11,7 +11,7 @@ class EpisodeBatch:
                  max_seq_length,
                  data=None,
                  preprocess=None,
-                 device="cpu"):
+                 device="cuda"):
         self.scheme = scheme.copy()
         self.groups = groups
         self.batch_size = batch_size
@@ -212,7 +212,7 @@ class EpisodeBatch:
                                                                                      self.groups.keys())
 
 class ReplayBuffer(EpisodeBatch):
-    def __init__(self, scheme, groups, buffer_size, max_seq_length, preprocess=None, device="cpu"):
+    def __init__(self, scheme, groups, buffer_size, max_seq_length, preprocess=None, device="cuda"):
         super(ReplayBuffer, self).__init__(scheme, groups, buffer_size, max_seq_length, preprocess=preprocess, device=device)
         self.buffer_size = buffer_size  # same as self.batch_size but more explicit
         self.buffer_index = 0
