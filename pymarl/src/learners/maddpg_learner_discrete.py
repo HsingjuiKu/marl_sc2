@@ -4,14 +4,19 @@ from modules.critics.maddpg import MADDPGCritic
 import torch as th
 from torch.optim import RMSprop, Adam
 from utils.rl_utils import build_td_lambda_targets
-
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+from redistribute import EnhancedCausalModel
 
 class MADDPGDiscreteLearner:
-    def __init__(self, mac, scheme, logger, args):
+    def __init__(self, mac, scheme, logger, args, obs_dim, action_dim):
         self.args = args
         self.n_agents = args.n_agents
         self.n_actions = args.n_actions
         self.logger = logger
+        self.obs_dim = obs_dim
+        self.action_dim = action_dim
 
         self.mac = mac
         self.target_mac = copy.deepcopy(self.mac)
@@ -39,15 +44,31 @@ class MADDPGDiscreteLearner:
         self.last_target_update_episode = 0
         self.critic_training_steps = 0
 
+        # Initialize the EnhancedCausalModel for reward redistribution
+        self.redistribution_model = EnhancedCausalModel(
+            num_agents=self.n_agents,
+            obs_dim=self.obs_dim,
+            action_dim=self.action_dim,
+            device=self.args.device
+        )
+
     def train(self, batch: EpisodeBatch, t_env: int, episode_num: int):
         # Get the relevant quantities
         rewards = batch["reward"][:, :-1]
-        # actions = batch["actions"][:, :]
         actions = batch["actions_onehot"][:, :]
         terminated = batch["terminated"].float()
         mask = batch["filled"].float()
         mask[:, 1:] = mask[:, 1:] * (1 - terminated[:, :-1])
         avail_actions = batch["avail_actions"][:, :-1]
+
+        # Reward redistribution
+        with th.no_grad():
+            obs = batch["obs"][:, :-1]
+            social_contribution_index = self.redistribution_model.calculate_social_contribution_index(obs, actions)
+            tax_rates = self.redistribution_model.calculate_tax_rates(social_contribution_index)
+            redistributed_rewards = self.redistribution_model.redistribute_rewards(rewards, social_contribution_index, tax_rates)
+
+        batch["reward"][:, :-1] = redistributed_rewards
 
         # Train the critic batched
         target_mac_out = []
@@ -113,10 +134,8 @@ class MADDPGDiscreteLearner:
             mask_elems = mask.sum().item()
             self.logger.log_stat("td_error_abs", masked_td_error.abs().sum().item() / mask_elems, t_env)
             self.logger.log_stat("q_taken_mean", (q_taken * mask).sum().item() / mask_elems, t_env)
-            # self.logger.log_stat("target_mean", targets.sum().item() / mask_elems, t_env)
             self.logger.log_stat("pg_loss", pg_loss.item(), t_env)
             self.logger.log_stat("agent_grad_norm", agent_grad_norm, t_env)
-            # self.logger.log_stat("pi_max", (pi.max(dim=-1)[0] * mask).sum().item() / mask_elems, t_env)
             self.log_stats_t = t_env
 
     def _update_targets_soft(self, tau):
