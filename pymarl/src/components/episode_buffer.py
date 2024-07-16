@@ -107,7 +107,7 @@ class EpisodeBatch:
             else:
                 # Convert the list of numpy.ndarrays to a single numpy.ndarray
                 v = np.array(v)
-            v = th.tensor(v, dtype=dtype, device=self.device)
+                v = th.tensor(v, dtype=dtype, device=self.device)
             self._check_safe_view(v, target[k][_slices])
             target[k][_slices] = v.view_as(target[k][_slices])
 
