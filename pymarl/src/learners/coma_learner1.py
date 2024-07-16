@@ -7,12 +7,14 @@ from torch.optim import RMSprop
 from redistribute import EnhancedCausalModel
 
 class COMALearner:
-    def __init__(self, mac, scheme, logger, args):
+    def __init__(self, mac, scheme, logger, args, obs_dim, action_dim):
         self.args = args
         self.n_agents = args.n_agents
         self.n_actions = args.n_actions
         self.mac = mac
         self.logger = logger
+        self.obs_dim = obs_dim
+        self.action_dim = action_dim
 
         self.last_target_update_step = 0
         self.critic_training_steps = 0
@@ -32,9 +34,9 @@ class COMALearner:
         # Initialize the EnhancedCausalModel for reward redistribution
         self.redistribution_model = EnhancedCausalModel(
             num_agents=self.n_agents,
-            obs_dim=self.args.obs_dim,
-            action_dim=self.n_actions,
-            device=args.device
+            obs_dim=self.obs_dim,
+            action_dim=self.action_dim,
+            device=self.args.device
         )
 
     def train(self, batch: EpisodeBatch, t_env: int, episode_num: int):

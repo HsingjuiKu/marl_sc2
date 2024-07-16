@@ -10,11 +10,13 @@ from components.standarize_stream import RunningMeanStd
 from redistribute import EnhancedCausalModel
 
 class PPOLearner:
-    def __init__(self, mac, scheme, logger, args):
+    def __init__(self, mac, scheme, logger, args, obs_dim, action_dim):
         self.args = args
         self.n_agents = args.n_agents
         self.n_actions = args.n_actions
         self.logger = logger
+        self.obs_dim = obs_dim
+        self.action_dim = action_dim
 
         self.mac = mac
         self.old_mac = copy.deepcopy(mac)
@@ -40,9 +42,9 @@ class PPOLearner:
         # Initialize the EnhancedCausalModel for reward redistribution
         self.redistribution_model = EnhancedCausalModel(
             num_agents=self.n_agents,
-            obs_dim=self.args.obs_dim,
-            action_dim=self.n_actions,
-            device=device
+            obs_dim=self.obs_dim,
+            action_dim=self.action_dim,
+            device=self.args.device
         )
 
     def train(self, batch: EpisodeBatch, t_env: int, episode_num: int):

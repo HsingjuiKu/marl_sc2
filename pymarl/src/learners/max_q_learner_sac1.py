@@ -12,10 +12,12 @@ from controllers import REGISTRY as mac_REGISTRY
 from redistribute import EnhancedCausalModel
 
 class SACQLearner:
-    def __init__(self, mac, scheme, logger, args):
+    def __init__(self, mac, scheme, logger, args, obs_dim, action_dim):
         self.args = args
         self.mac = mac
         self.logger = logger
+        self.obs_dim = obs_dim
+        self.action_dim = action_dim
 
         self.mac_params = list(mac.parameters())
         self.params = list(self.mac.parameters())
@@ -56,10 +58,10 @@ class SACQLearner:
 
         # Initialize the EnhancedCausalModel for reward redistribution
         self.redistribution_model = EnhancedCausalModel(
-            num_agents=self.args.n_agents,
-            obs_dim=self.args.obs_dim,
-            action_dim=self.args.n_actions,
-            device=args.device
+            num_agents=self.n_agents,
+            obs_dim=self.obs_dim,
+            action_dim=self.action_dim,
+            device=self.args.device
         )
 
     def train(self, batch: EpisodeBatch, t_env: int, episode_num: int):
