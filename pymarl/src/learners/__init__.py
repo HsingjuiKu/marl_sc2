@@ -6,7 +6,7 @@ from .q_dist_learner import QLearner as QDistLearner
 from .max_q_learner_ddpg import DDPGQLearner
 from .max_q_learner_sac import SACQLearner
 from .maddpg_learner2 import MADDPGLearner
-from .maddpg_learner_discrete import MADDPGDiscreteLearner
+from .maddpg_learner_discrete1 import MADDPGDiscreteLearner
 from .ppo_learner import PPOLearner
 
 REGISTRY = {}
