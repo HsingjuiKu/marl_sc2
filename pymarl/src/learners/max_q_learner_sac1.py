@@ -9,6 +9,9 @@ import torch.nn.functional as F
 from collections import deque
 from torch.distributions import Categorical
 from controllers import REGISTRY as mac_REGISTRY
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from redistribute import EnhancedCausalModel
 
 class SACQLearner:

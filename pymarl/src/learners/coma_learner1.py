@@ -4,6 +4,9 @@ from modules.critics.coma import COMACritic
 from utils.rl_utils import build_td_lambda_targets
 import torch as th
 from torch.optim import RMSprop
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from redistribute import EnhancedCausalModel
 
 class COMALearner:
