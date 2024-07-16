@@ -22,7 +22,8 @@ def run(_run, _config, _log):
     _config = args_sanity_check(_config, _log)
 
     args = SN(**_config)
-    args.device = "cuda" if args.use_cuda else "cpu"
+    # args.device = "cuda" if args.use_cuda else "cpu"
+    args.device = "cuda" 
 
     # setup loggers
     logger = Logger(_log)
@@ -103,7 +104,8 @@ def run_sequential(args, logger):
 
     buffer = ReplayBuffer(scheme, groups, args.buffer_size, env_info["episode_limit"] + 1,
                           preprocess=preprocess,
-                          device="cpu" if args.buffer_cpu_only else args.device)
+                          device=args.device
+                          # device="cpu" if args.buffer_cpu_only else args.device)
 
     # Setup multiagent controller here
     mac = mac_REGISTRY[args.mac](buffer.scheme, groups, args)
@@ -117,8 +119,9 @@ def run_sequential(args, logger):
                                         obs_dim=env_info["obs_shape"],
                                         action_dim=env_info["n_actions"])
 
-    if args.use_cuda:
-        learner.cuda()
+    # if args.use_cuda:
+    #     learner.cuda()
+    learner.cuda()
 
     if args.checkpoint_path != "":
 
@@ -221,7 +224,7 @@ def args_sanity_check(config, _log):
 
     # set CUDA flags
     print(th.cuda.is_available())
-    config["use_cuda"] = True # Use cuda whenever possible!
+    # config["use_cuda"] = True # Use cuda whenever possible!
     if config["use_cuda"] and not th.cuda.is_available():
         config["use_cuda"] = False
         _log.warning("CUDA flag use_cuda was switched OFF automatically because no CUDA devices are available!")
