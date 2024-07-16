@@ -27,7 +27,10 @@ class EnhancedCausalModel(nn.Module):
         return self.network(torch.cat([obs, action], dim=-1))
 
     def calculate_social_influence(self, obs, actions):
-        batch_size, num_agents, obs_dim = obs.shape
+        if len(obs.shape) == 4:
+            batch_size, num_agents, episode_length, obs_dim = obs.shape
+        else: 
+            batch_size, num_agents, obs_dim = obs.shape
         influences = []
 
         adaptive_factor = max(10, num_agents)
