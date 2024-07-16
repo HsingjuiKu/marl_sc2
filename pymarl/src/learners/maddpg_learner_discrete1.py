@@ -4,6 +4,9 @@ from modules.critics.maddpg import MADDPGCritic
 import torch as th
 from torch.optim import RMSprop, Adam
 from utils.rl_utils import build_td_lambda_targets
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from redistribute import EnhancedCausalModel
 
 class MADDPGDiscreteLearner:
