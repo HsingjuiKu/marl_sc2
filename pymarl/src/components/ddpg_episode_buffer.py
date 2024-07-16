@@ -106,9 +106,13 @@ class EpisodeBatch:
 
             dtype = self.scheme[k].get("dtype", th.float32)
 
-            # Convert the list of numpy.ndarrays to a single numpy.ndarray
-            v = np.array(v)
-            v = th.tensor(v, dtype=dtype, device=self.device)
+            if isinstance(v, th.Tensor):
+                # Ensure the tensor is on the correct device
+                v = v.to(device=self.device, dtype=dtype)
+            else:
+                # Convert the list of numpy.ndarrays to a single numpy.ndarray
+                v = np.array(v)
+                v = th.tensor(v, dtype=dtype, device=self.device)
             try:
                 self._check_safe_view(v, target[k][_slices])
             except Exception as e:
