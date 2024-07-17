@@ -64,7 +64,9 @@ class MADDPGDiscreteLearner:
         # Reward redistribution
         with th.no_grad():
             obs = batch["obs"][:, :-1]
-            social_contribution_index = self.redistribution_model.calculate_social_contribution_index(obs, actions)
+            obs_m = torch.squeeze(obs, dim=2)
+            act_m = torcch.squeeze(actions,dim = 2)
+            social_contribution_index = self.redistribution_model.calculate_social_contribution_index(obs_m, act_m)
             tax_rates = self.redistribution_model.calculate_tax_rates(social_contribution_index)
             redistributed_rewards = self.redistribution_model.redistribute_rewards(rewards, social_contribution_index, tax_rates)
         print("--------",redistributed_rewards,"------------")
