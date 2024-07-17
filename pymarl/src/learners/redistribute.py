@@ -54,11 +54,8 @@ class EnhancedCausalModel(nn.Module):
             )
             influences.append(influence.unsqueeze(-1))
         influences = torch.stack(influences, dim=-1)
-        print(influences.shape)
         influences = F.softmax(influences, dim=-2)
-        print(influences.shape)
         influences = influences.unsqueeze(1)
-        print(influences.shape)
         return influences
 
     def calculate_social_contribution_index(self, obs, actions):
