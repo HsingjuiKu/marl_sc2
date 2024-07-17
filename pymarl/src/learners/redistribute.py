@@ -29,10 +29,11 @@ class EnhancedCausalModel(nn.Module):
     def calculate_social_influence(self, obs, actions):
         if len(obs.shape) == 4:
             batch_size, episode_length, num_agents, obs_dim = obs.shape
+            self.episode_length = episode_length
         else: 
             batch_size, num_agents, obs_dim = obs.shape
         influences = []
-
+        
         adaptive_factor = max(10, num_agents)
         
         for k in range(num_agents):
@@ -70,7 +71,7 @@ class EnhancedCausalModel(nn.Module):
         normalized_contributions = social_contribution_index / (social_contribution_index.sum(dim=1, keepdim=True) + 1e-8)
         redistributed_rewards = (1 - tax_rates) * original_rewards + beta * normalized_contributions * central_pool
         # return alpha * redistributed_rewards + (1 - alpha) * original_rewards
-        redistributed_rewards = redistributed_rewards.sum(dim=-1, keepdim=True)
+        redistributed_rewards = redistributed_rewards.sum(dim=-1, keepdim=True) / self.episode_length
         return redistributed_rewards
 
 
