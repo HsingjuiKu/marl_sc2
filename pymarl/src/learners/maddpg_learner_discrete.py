@@ -63,12 +63,8 @@ class MADDPGDiscreteLearner:
         print("--------",rewards,"------------")
         # Reward redistribution
         with th.no_grad():
-            obs = batch["obs"][:, :-1]
-            print(obs.shape)
-            obs_m = th.squeeze(obs, dim=2)
-            act_m = th.squeeze(actions,dim = 2)
-            
-            social_contribution_index = self.redistribution_model.calculate_social_contribution_index(obs_m, act_m)
+            obs = batch["obs"][:, :-1] 
+            social_contribution_index = self.redistribution_model.calculate_social_contribution_index(obs, actions)
             tax_rates = self.redistribution_model.calculate_tax_rates(social_contribution_index)
             redistributed_rewards = self.redistribution_model.redistribute_rewards(rewards, social_contribution_index, tax_rates)
         print("--------",redistributed_rewards,"------------")
