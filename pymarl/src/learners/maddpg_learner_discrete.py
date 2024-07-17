@@ -66,6 +66,7 @@ class MADDPGDiscreteLearner:
             obs = batch["obs"][:, :-1]
             obs_m = th.squeeze(obs, dim=2)
             act_m = th.squeeze(actions,dim = 2)
+            print(obs_m.shape)
             social_contribution_index = self.redistribution_model.calculate_social_contribution_index(obs_m, act_m)
             tax_rates = self.redistribution_model.calculate_tax_rates(social_contribution_index)
             redistributed_rewards = self.redistribution_model.redistribute_rewards(rewards, social_contribution_index, tax_rates)
