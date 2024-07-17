@@ -36,16 +36,25 @@ class EnhancedCausalModel(nn.Module):
         adaptive_factor = max(10, num_agents)
         
         for k in range(num_agents):
-            agent_idx = k % num_agents
-            obs_k = obs[:, :, agent_idx,:]
-            action_k = actions[:, :episode_length, agent_idx,:]
-            p_with_k = self.predict_others_actions(obs_k, action_k)
-            p_without_k = self.predict_others_actions(obs_k, torch.zeros_like(action_k).to(self.device))
-            print(p_with_k.shape,p_without_k.shape )
-            for _ in range(adaptive_factor):
-                counterfactual_actions = torch.rand_like(action_k).to(self.device)  # Generate random actions
-                p_without_k += self.predict_others_actions(obs_k, counterfactual_actions)
-            p_without_k /= (adaptive_factor + 1)
+            p_with_k_list = []
+            p_without_k_list = []
+            for e in range(episode_length):
+                agent_idx = k % num_agents
+                obs_k = obs[:, e, agent_idx,:]
+                action_k = actions[:, e, agent_idx,:]
+                p_with_k_list.append(self.predict_others_actions(obs_k, action_k))
+                p_without_k1 = self.predict_others_actions(obs_k, torch.zeros_like(action_k).to(self.device))
+                # print(p_with_k.shape,p_without_k.shape )
+                for _ in range(adaptive_factor):
+                    counterfactual_actions = torch.rand_like(action_k).to(self.device)  # Generate random actions
+                    p_without_k1 += self.predict_others_actions(obs_k, counterfactual_actions)
+                p_without_k1 /= (adaptive_factor + 1)
+                p_without_k_list.append(p_without_k1)
+            # Stack the tensors along a new axis
+            p_with_k = torch.stack(p_with_k_list)
+            p_with_k = torch.mean(p_with_k, axis=0)
+            p_without_k = torch.stack(p_without_k_list)
+            p_without_k = torch.mean(p_without_k, axis=0)
 
             influence = F.kl_div(
                 p_with_k.log_softmax(dim=-1),
