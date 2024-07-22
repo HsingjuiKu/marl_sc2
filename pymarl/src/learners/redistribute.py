@@ -52,7 +52,7 @@ class EnhancedCausalModel(nn.Module):
             influence = F.kl_div(
                 p_with_k.log_softmax(dim=-1),
                 p_without_k.softmax(dim=-1),
-                reduction='batchmean'
+                reduction='none'
             )
             influences.append(influence.unsqueeze(-1))
         
