@@ -91,7 +91,7 @@ class EnhancedCausalModel(nn.Module):
         # return alpha * redistributed_rewards + (1 - alpha) * original_rewards
         print("shape re:0", redistributed_rewards.shape)
         print(redistributed_rewards)
-        redistributed_rewards = redistributed_rewards.sum(dim=-1, keepdim=True) / self.num_agents
+        redistributed_rewards = redistributed_rewards.sum(dim=-1, keepdim=True)
         return redistributed_rewards
 
 
