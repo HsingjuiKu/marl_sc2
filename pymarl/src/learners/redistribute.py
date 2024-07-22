@@ -83,7 +83,7 @@ class EnhancedCausalModel(nn.Module):
         # normalized_contributions = social_contribution_index / (social_contribution_index.sum(dim=-1, keepdim=True) + 1e-8)
         # print("N shape",normalized_contributions.shape )
         # print(normalized_contributions)
-        redistributed_rewards = (1 - tax_rates) * original_rewards + beta * normalized_contributions * central_pool
+        redistributed_rewards = (1 - tax_rates) * original_rewards + beta * social_contribution_index * central_pool
         print("1ge",(1 - tax_rates) * original_rewards)
         print("1ge shape",((1 - tax_rates) * original_rewards).shape)
         print("2ge", beta * normalized_contributions * central_pool )
