@@ -74,7 +74,7 @@ class EnhancedCausalModel(nn.Module):
         print("Tax rate shape: ", tax_rates.shape)
         print(tax_rates)
         print("------------------------")
-        central_pool = (tax_rates * original_rewards).sum(dim=1, keepdim=True) / self.episode_length
+        central_pool = (tax_rates * original_rewards).sum(dim=-1, keepdim=True)
         print("------------------------")
         print("central_pools shape 1:", (tax_rates * original_rewards).shape)
         print("central_pools shape :", central_pool.shape)
