@@ -30,6 +30,7 @@ class EnhancedCausalModel(nn.Module):
         if len(obs.shape) == 4:
             batch_size, episode_length, num_agents, obs_dim = obs.shape
             self.episode_length = episode_length
+            self.num_agents = num_agents
         else: 
             batch_size, num_agents, obs_dim = obs.shape
         influences = []
@@ -71,7 +72,7 @@ class EnhancedCausalModel(nn.Module):
         print("Tax rate shape: ", tax_rates.shape)
         print(tax_rates)
         print("------------------------")
-        central_pool = (tax_rates * original_rewards).sum(dim=1, keepdim=True)
+        central_pool = (tax_rates * original_rewards).sum(dim=1, keepdim=True) / self.episode_length
         print("------------------------")
         print("central_pools shape 1:", (tax_rates * original_rewards).shape)
         print("central_pools shape :", central_pool.shape)
@@ -88,7 +89,7 @@ class EnhancedCausalModel(nn.Module):
         # return alpha * redistributed_rewards + (1 - alpha) * original_rewards
         print("shape re:0", redistributed_rewards.shape)
         print(redistributed_rewards)
-        redistributed_rewards = redistributed_rewards.sum(dim=-1, keepdim=True)
+        redistributed_rewards = redistributed_rewards.sum(dim=-1, keepdim=True) / self.num_agents
         return redistributed_rewards
 
 
