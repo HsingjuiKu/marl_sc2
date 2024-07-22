@@ -38,9 +38,9 @@ class EnhancedCausalModel(nn.Module):
         adaptive_factor = max(10, num_agents)
         
         for k in range(num_agents):
-            agent_idx = k % num_agents
-            obs_k = obs[:, :, agent_idx,:]
-            action_k = actions[:, :episode_length, agent_idx,:]
+            # agent_idx = k % num_agent
+            obs_k = obs[:, :, k,:]
+            action_k = actions[:, :episode_length, k,:]
             p_with_k = self.predict_others_actions(obs_k, action_k).to(self.device)
             p_without_k = self.predict_others_actions(obs_k, torch.zeros_like(action_k)).to(self.device)
             # print(p_with_k.shape,p_without_k.shape )
@@ -55,7 +55,9 @@ class EnhancedCausalModel(nn.Module):
                 reduction='batchmean'
             )
             influences.append(influence.unsqueeze(-1))
+        
         influences = torch.stack(influences, dim=-1)
+        print(influences.shape)
         l2_norm = influences.norm(p=2, dim=-1, keepdim=True)
         normalized_influences = influences / (l2_norm + 1e-8) 
         influences = F.softmax(normalized_influences, dim=-1)
