@@ -54,13 +54,9 @@ class EnhancedCausalModel(nn.Module):
                 reduction='batchmean'
             )
             influences.append(influence.unsqueeze(-1))
-        print(influences)
         influences = torch.stack(influences, dim=-1)
-        print(influences)
         influences = F.softmax(influences, dim=-2)
-        print(influences)
         influences = influences.unsqueeze(1)
-        print(influences)
         return influences
 
     def calculate_social_contribution_index(self, obs, actions):
@@ -84,8 +80,10 @@ class EnhancedCausalModel(nn.Module):
         print("N shape",normalized_contributions.shape )
         print(normalized_contributions)
         redistributed_rewards = (1 - tax_rates) * original_rewards + beta * normalized_contributions * central_pool
+        print("1ge",(1 - tax_rates) * original_rewards)
+        print("2ge", beta * normalized_contributions * central_pool )
         # return alpha * redistributed_rewards + (1 - alpha) * original_rewards
-        redistributed_rewards = redistributed_rewards.sum(dim=-1, keepdim=True) / self.episode_length
+        redistributed_rewards = redistributed_rewards.sum(dim=-1, keepdim=True)
         return redistributed_rewards
 
 
