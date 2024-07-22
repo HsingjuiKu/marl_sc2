@@ -73,7 +73,7 @@ class EnhancedCausalModel(nn.Module):
         print("------------------------")
         central_pool = (tax_rates * original_rewards).sum(dim=1, keepdim=True)
         print("------------------------")
-         print("central_pools shape 1:", (tax_rates * original_rewards).shape)
+        print("central_pools shape 1:", (tax_rates * original_rewards).shape)
         print("central_pools shape :", central_pool.shape)
         print(central_pool)
         print("------------------------")
