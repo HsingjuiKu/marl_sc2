@@ -86,7 +86,7 @@ class EnhancedCausalModel(nn.Module):
         print("2ge", beta * normalized_contributions * central_pool )
         print("2ge shape", (beta * normalized_contributions * central_pool).shape )
         # return alpha * redistributed_rewards + (1 - alpha) * original_rewards
-        print("shape re:0", redistributed_rewards)
+        print("shape re:0", redistributed_rewards.shape)
         print(redistributed_rewards)
         redistributed_rewards = redistributed_rewards.sum(dim=-1, keepdim=True)
         return redistributed_rewards
