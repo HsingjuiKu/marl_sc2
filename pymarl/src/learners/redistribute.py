@@ -87,7 +87,7 @@ class EnhancedCausalModel(nn.Module):
         print("1ge",(1 - tax_rates) * original_rewards)
         print("1ge shape",((1 - tax_rates) * original_rewards).shape)
         print("2ge", beta * social_contribution_index * central_pool )
-        print("2ge shape", (beta * normalized_contributions * central_pool).shape )
+        print("2ge shape", (beta * social_contribution_index * central_pool).shape )
         # return alpha * redistributed_rewards + (1 - alpha) * original_rewards
         print("shape re:0", redistributed_rewards.shape)
         print(redistributed_rewards)
