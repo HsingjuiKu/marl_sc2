@@ -31,6 +31,7 @@ class EnhancedCausalModel(nn.Module):
             batch_size, episode_length, num_agents, obs_dim = obs.shape
             self.episode_length = episode_length
             self.num_agents = num_agents
+            print(obs_dim)
         else: 
             batch_size, num_agents, obs_dim = obs.shape
         influences = []
