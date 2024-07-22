@@ -56,7 +56,9 @@ class EnhancedCausalModel(nn.Module):
             )
             influences.append(influence.unsqueeze(-1))
         influences = torch.stack(influences, dim=-1)
-        influences = F.softmax(influences, dim=-2)
+        l2_norm = influences.norm(p=2, dim=-1, keepdim=True)
+        normalized_influences = influences / (l2_norm + 1e-8) 
+        influences = F.softmax(influences, dim=-1)
         influences = influences.unsqueeze(1)
         return influences
 
