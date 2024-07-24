@@ -99,12 +99,12 @@ class EnhancedCausalModel(nn.Module):
 
     def redistribute_rewards(self, original_rewards, social_contribution_index, tax_rates, beta=0.5, alpha=1.0):
         # print("------------------------")
-        print("Tax rate shape: ", tax_rates.shape)
+        # print("Tax rate shape: ", tax_rates.shape)
         # print(tax_rates)
         # print("------------------------")
         central_pool = (tax_rates * original_rewards).sum(dim=1, keepdim=True)
         # print("------------------------")
-        print("central_pools shape :", central_pool.shape)
+        # print("central_pools shape :", central_pool.shape)
         # print(central_pool)
         # print("------------------------")
         
