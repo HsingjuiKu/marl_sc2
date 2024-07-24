@@ -60,8 +60,8 @@ class MADDPGDiscreteLearner:
         mask = batch["filled"].float()
         mask[:, 1:] = mask[:, 1:] * (1 - terminated[:, :-1])
         avail_actions = batch["avail_actions"][:, :-1]
-        # print(rewards.shape)
-        # print("--------",rewards,"------------")
+        print(rewards.shape)
+        print("--------",rewards,"------------")
         # Reward redistribution
         with th.no_grad():
             obs = batch["obs"][:, :-1] 
@@ -69,8 +69,8 @@ class MADDPGDiscreteLearner:
             # print(social_contribution_index)
             tax_rates = self.redistribution_model.calculate_tax_rates(social_contribution_index)
             redistributed_rewards = self.redistribution_model.redistribute_rewards(rewards, social_contribution_index, tax_rates)
-        # print(redistributed_rewards.shape)
-        # print("--------",redistributed_rewards,"------------")
+        print(redistributed_rewards.shape)
+        print("--------",redistributed_rewards,"------------")
         batch["reward"][:, :-1] = redistributed_rewards
 
         # Train the critic batched
