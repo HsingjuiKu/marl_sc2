@@ -57,7 +57,14 @@ class MADDPGLearner:
         terminated = batch["terminated"][:, :-1].float()
         mask = batch["filled"][:, :-1].float()
         mask[:, 1:] = mask[:, 1:] * (1 - terminated[:, :-1])
+        # Reward redistribution
+        with th.no_grad():
+            obs = batch["obs"][:, :-1]
+            social_contribution_index = self.redistribution_model.calculate_social_contribution_index(obs, actions)
+            tax_rates = self.redistribution_model.calculate_tax_rates(social_contribution_index)
+            redistributed_rewards = self.redistribution_model.redistribute_rewards(rewards, social_contribution_index, tax_rates)
 
+        batch["reward"][:, :-1] = redistributed_rewards
         # Train the critic batched
         target_actions = []
         self.target_mac.init_hidden(batch.batch_size)
@@ -142,15 +149,6 @@ class MADDPGLearner:
             self.logger.log_stat("pg_loss", pg_loss.item(), t_env)
             self.logger.log_stat("agent_grad_norm", agent_grad_norm, t_env)
             self.log_stats_t = t_env
-
-        # Reward redistribution
-        with th.no_grad():
-            obs = batch["obs"][:, :-1]
-            social_contribution_index = self.redistribution_model.calculate_social_contribution_index(obs, actions)
-            tax_rates = self.redistribution_model.calculate_tax_rates(social_contribution_index)
-            redistributed_rewards = self.redistribution_model.redistribute_rewards(rewards, social_contribution_index, tax_rates)
-
-        batch["reward"][:, :-1] = redistributed_rewards
 
     def _update_targets_soft(self, tau):
         for target_param, param in zip(self.target_mac.parameters(), self.mac.parameters()):
