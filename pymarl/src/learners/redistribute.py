@@ -57,7 +57,7 @@ class EnhancedCausalModel(nn.Module):
             influences.append(influence)
         
         influences = torch.stack(influences, dim=-1)
-        print(influences)
+        print(influences.shape)
         influences = influences.mean(dim = 2, keepdim =False)
         # print(influences.shape)
         l2_norm = influences.norm(p=2, dim=-1, keepdim=True)
