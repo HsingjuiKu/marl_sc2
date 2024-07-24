@@ -63,7 +63,7 @@ class EnhancedCausalModel(nn.Module):
         # l2_norm = influences.norm(p=2, dim=-1, keepdim=True)
         # influences = influences / (l2_norm + 1e-8) 
         # print(influences.shape)
-        influnences = influences.mean(dim = -1, keepdim = False)
+        influences = influences.mean(dim = -1, keepdim = False)
         # influences = influences.unsqueeze(-1)
         print(influences.shape)
         # Calculate the sum along the second axis (dim=1)
