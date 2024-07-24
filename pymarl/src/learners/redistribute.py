@@ -83,35 +83,32 @@ class EnhancedCausalModel(nn.Module):
         mask_M = (social_contribution_index >= 0.3) & (social_contribution_index <= 0.5)
         mask_H = (social_contribution_index >= 0.5)
 
-        # Apply the conditions to replace the values
-        social_contribution_index[mask_dd] = 0.01
-        social_contribution_index[mask_d] = 0.15
-        social_contribution_index[mask_M] = 0.45
-        social_contribution_index[mask_H] = 0.8
+        # # Apply the conditions to replace the values
+        # social_contribution_index[mask_dd] = 0.01
+        # social_contribution_index[mask_d] = 0.15
+        # social_contribution_index[mask_M] = 0.45
+        # social_contribution_index[mask_H] = 0.8
 
-        # # Apply the conditions to replace the values(anti)
-        # social_contribution_index[mask_dd] = 0.05
-        # social_contribution_index[mask_d] = 0.1
-        # social_contribution_index[mask_M] = 0.15
-        # social_contribution_index[mask_H] = 0.2
+        # Apply the conditions to replace the values(anti)
+        social_contribution_index[mask_dd] = 0.05
+        social_contribution_index[mask_d] = 0.1
+        social_contribution_index[mask_M] = 0.15
+        social_contribution_index[mask_H] = 0.2
         return social_contribution_index
         
 
     def redistribute_rewards(self, original_rewards, social_contribution_index, tax_rates, beta=0.5, alpha=1.0):
         # print("------------------------")
-        # print("Tax rate shape: ", tax_rates.shape)
+        print("Tax rate shape: ", tax_rates.shape)
         # print(tax_rates)
         # print("------------------------")
         central_pool = (tax_rates * original_rewards).sum(dim=1, keepdim=True)
         # print("------------------------")
-        # print("central_pools shape 1:", (tax_rates * original_rewards).shape)
-        # print("central_pools shape :", central_pool.shape)
+        print("central_pools shape :", central_pool.shape)
         # print(central_pool)
         # print("------------------------")
-        # normalized_contributions = social_contribution_index / (social_contribution_index.sum(dim=-1, keepdim=True) + 1e-8)
-        # print("N shape",normalized_contributions.shape )
-        # print(normalized_contributions)
-        redistributed_rewards = (1 - tax_rates) * original_rewards + social_contribution_index * central_pool
+        
+        redistributed_rewards = (1 - tax_rates) * original_rewards + (1- social_contribution_index) * central_pool
         # print("1ge",(1 - tax_rates) * original_rewards)
         # print("1ge shape",((1 - tax_rates) * original_rewards).shape)
         # print("2ge", beta * social_contribution_index * central_pool )
