@@ -57,13 +57,19 @@ class EnhancedCausalModel(nn.Module):
             influences.append(influence)
         
         influences = torch.stack(influences, dim=-1)
-        print(influences.shape)
+        # print(influences.shape)
         influences = influences.mean(dim = 2, keepdim =False)
         # print(influences.shape)
         l2_norm = influences.norm(p=2, dim=-1, keepdim=True)
-        normalized_influences = influences / (l2_norm + 1e-8) 
-        influences = F.softmax(normalized_influences, dim=-1)
-        # influences = influences.unsqueeze(1)
+        influences = influences / (l2_norm + 1e-8) 
+        print(influences.shape)
+        # Calculate the sum along the second axis (dim=1)
+        sums = influences.sum(dim=(-1), keepdim=True)
+        # print(sums.shape)
+
+        # Normalize each value by dividing by the sum of its corresponding triplet
+        influences = influences / sums
+        print(influences.shape)
         return influences
 
     def calculate_social_contribution_index(self, obs, actions):
