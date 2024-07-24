@@ -92,7 +92,7 @@ class MADDPGLearner:
 
         q_taken = q_taken.view(batch.batch_size, -1, 1)
         target_vals = target_vals.view(batch.batch_size, -1, 1)
-        targets = rewards.expand_as(target_vals) + self.args.gamma * (1 - terminated.expand_as(target_vals)) * target_vals
+        targets = redistributed_rewards.expand_as(target_vals) + self.args.gamma * (1 - terminated.expand_as(target_vals)) * target_vals
 
         td_error = (q_taken - targets.detach())
         mask = mask.expand_as(td_error)
