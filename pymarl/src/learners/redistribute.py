@@ -63,8 +63,9 @@ class EnhancedCausalModel(nn.Module):
         l2_norm = influences.norm(p=2, dim=-1, keepdim=True)
         influences = influences / (l2_norm + 1e-8) 
         print(influences.shape)
+        influnences = influences.mean(dim=-1, keepdim = True)
         # Calculate the sum along the second axis (dim=1)
-        sums = influences.sum(dim=(-1), keepdim=True)
+        sums = influences.sum(dim=(1), keepdim=True)
         # print(sums.shape)
 
         # Normalize each value by dividing by the sum of its corresponding triplet
@@ -77,7 +78,25 @@ class EnhancedCausalModel(nn.Module):
         return influences
 
     def calculate_tax_rates(self, social_contribution_index):
-        return torch.sigmoid(social_contribution_index)
+        # Define the condition masks
+        mask_dd = social_contribution_index < 0.1
+        mask_d = (social_contribution_index >= 0.1) & (social_contribution_index <= 0.3)
+        mask_M = (social_contribution_index >= 0.3) & (social_contribution_index <= 0.5)
+        mask_H = (social_contribution_index >= 0.5)
+
+        # Apply the conditions to replace the values
+        social_contribution_index[mask_dd] = 0.01
+        social_contribution_index[mask_d] = 0.15
+        social_contribution_index[mask_M] = 0.45
+        social_contribution_index[mask_H] = 0.8
+
+        # # Apply the conditions to replace the values(anti)
+        # social_contribution_index[mask_dd] = 0.05
+        # social_contribution_index[mask_d] = 0.1
+        # social_contribution_index[mask_M] = 0.15
+        # social_contribution_index[mask_H] = 0.2
+        return social_contribution_index
+        
 
     def redistribute_rewards(self, original_rewards, social_contribution_index, tax_rates, beta=0.5, alpha=1.0):
         # print("------------------------")
