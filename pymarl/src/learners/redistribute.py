@@ -84,7 +84,7 @@ class EnhancedCausalModel(nn.Module):
         # print("Tax rate shape: ", tax_rates.shape)
         # print(tax_rates)
         # print("------------------------")
-        central_pool = (tax_rates * original_rewards).sum(dim=-1, keepdim=True)
+        central_pool = (tax_rates * original_rewards)
         # print("------------------------")
         # print("central_pools shape 1:", (tax_rates * original_rewards).shape)
         # print("central_pools shape :", central_pool.shape)
@@ -93,7 +93,7 @@ class EnhancedCausalModel(nn.Module):
         # normalized_contributions = social_contribution_index / (social_contribution_index.sum(dim=-1, keepdim=True) + 1e-8)
         # print("N shape",normalized_contributions.shape )
         # print(normalized_contributions)
-        redistributed_rewards = (1 - tax_rates) * original_rewards + beta * social_contribution_index * central_pool
+        redistributed_rewards = (1 - tax_rates) * original_rewards + social_contribution_index * central_pool
         # print("1ge",(1 - tax_rates) * original_rewards)
         # print("1ge shape",((1 - tax_rates) * original_rewards).shape)
         # print("2ge", beta * social_contribution_index * central_pool )
@@ -101,7 +101,6 @@ class EnhancedCausalModel(nn.Module):
         # return alpha * redistributed_rewards + (1 - alpha) * original_rewards
         # print("shape re:0", redistributed_rewards.shape)
         # print(redistributed_rewards)
-        redistributed_rewards = redistributed_rewards.sum(dim=-1, keepdim=True)
         return redistributed_rewards
 
 
