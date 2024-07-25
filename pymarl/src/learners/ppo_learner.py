@@ -1,4 +1,4 @@
-import copy
+eimport copy
 from components.episode_buffer import EpisodeBatch
 from modules.critics.coma import COMACritic
 from modules.critics.centralV import CentralVCritic
@@ -46,7 +46,7 @@ class PPOLearner:
         self.redistribution_model = EnhancedCausalModel(
             num_agents=self.n_agents,
             obs_dim=self.obs_dim,
-            action_dim=self.action_dim,
+            action_dim=1,
             device=self.args.device
         )
 
