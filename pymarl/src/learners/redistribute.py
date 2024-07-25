@@ -36,7 +36,6 @@ class EnhancedCausalModel(nn.Module):
         influences = []
         
         adaptive_factor = max(10, num_agents)
-        print(actions.shape)
         for k in range(num_agents):
             # agent_idx = k % num_agent
             obs_k = obs[:, :, k,:]
@@ -62,14 +61,13 @@ class EnhancedCausalModel(nn.Module):
         # influences = influences / (l2_norm + 1e-8) 
         # print(influences.shape)
         # influences = influences.mean(dim = -1, keepdim = False)
-        influences = influences.unsqueeze(-1)
+        # influences = influences.unsqueeze(-1)
         # Calculate the sum along the second axis (dim=1)
         sums = influences.sum(dim=(1), keepdim=True)
         # print(sums.shape)
 
         # Normalize each value by dividing by the sum of its corresponding triplet
         influences = influences / sums
-        print(influences.shape)
         return influences
 
     def calculate_social_contribution_index(self, obs, actions):
