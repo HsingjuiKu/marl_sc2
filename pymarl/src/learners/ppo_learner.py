@@ -1,4 +1,4 @@
-eimport copy
+import copy
 from components.episode_buffer import EpisodeBatch
 from modules.critics.coma import COMACritic
 from modules.critics.centralV import CentralVCritic
