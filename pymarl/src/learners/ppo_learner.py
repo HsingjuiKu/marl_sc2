@@ -119,7 +119,7 @@ class PPOLearner:
                 advantages, critic_train_stats = self.train_critic_sequential(
                     self.critic, self.target_critic, batch, agent_rewards, critic_mask
                 )
-                print(critic_train_stats.shape)
+                print(critic_train_stats)
                 all_advantages.append(advantages)
                 all_critic_train_stats.append(critic_train_stats)
 
