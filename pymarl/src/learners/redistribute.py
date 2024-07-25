@@ -16,7 +16,7 @@ class EnhancedCausalModel(nn.Module):
         self.device = device
 
         self.network = nn.Sequential(
-            nn.Linear(obs_dim + action_dim, 128),
+            nn.Linear(obs_dim + 1, 128),
             nn.ReLU(),
             nn.Linear(128, 64),
             nn.ReLU(),
