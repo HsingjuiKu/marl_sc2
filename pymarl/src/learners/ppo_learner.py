@@ -66,8 +66,6 @@ class PPOLearner:
         # Reward redistribution
         with th.no_grad():
             obs = batch["obs"][:, :-1]
-            print(self.obs_dim,self.action_dim )
-            print(obs.shape, actions.shape)
             social_contribution_index = self.redistribution_model.calculate_social_contribution_index(obs, actions)
             tax_rates = self.redistribution_model.calculate_tax_rates(social_contribution_index)
             redistributed_rewards = self.redistribution_model.redistribute_rewards(rewards, social_contribution_index, tax_rates)
@@ -112,7 +110,6 @@ class PPOLearner:
             mac_out = th.stack(mac_out, dim=1)  # Concat over time
 
             pi = mac_out
-            print(self.obs_dim,self.action_dim )
             print(redistributed_rewards.shape, rewards.shape)
             # advantages, critic_train_stats = self.train_critic_sequential(self.critic, self.target_critic, batch, redistributed_rewards,
             #                                                               critic_mask)
@@ -128,6 +125,7 @@ class PPOLearner:
 
             # 合并所有智能体的优势
             advantages = th.stack(all_advantages, dim=-1)
+            print(advantages.shape)
 
             # 合并所有智能体的critic训练统计
             combined_critic_train_stats = {
