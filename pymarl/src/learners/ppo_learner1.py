@@ -118,7 +118,7 @@ class PPOLearner:
             # advantages = advantages.detach()
 
             for agent_id in range(self.n_agents):
-                agent_rewards = redistributed_rewards[:, :, agent_id:agent_id + 1]
+                agent_rewards = redistributed_rewards[:, :, agent_id]
                 advantages, critic_train_stats = self.train_critic_sequential(
                     self.critic, self.target_critic, batch, agent_rewards, critic_mask
                 )
@@ -128,11 +128,11 @@ class PPOLearner:
             # 合并所有智能体的优势
             advantages = th.stack(all_advantages, dim=-1)
 
-            # # 合并所有智能体的critic训练统计
-            # combined_critic_train_stats = {
-            #     k: sum(stats[k] for stats in all_critic_train_stats) / len(all_critic_train_stats)
-            #     for k in all_critic_train_stats[0]
-            # }
+            # 合并所有智能体的critic训练统计
+            combined_critic_train_stats = {
+                k: sum(stats[k] for stats in all_critic_train_stats) / len(all_critic_train_stats)
+                for k in all_critic_train_stats[0]
+            }
             # Calculate policy grad with mask
 
             pi[mask == 0] = 1.0
