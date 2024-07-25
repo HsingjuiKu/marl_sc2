@@ -1,3 +1,4 @@
+import numpy as np
 import copy
 from components.episode_buffer import EpisodeBatch
 from modules.critics.coma import COMACritic
