@@ -15,6 +15,8 @@ class PPOLearner:
         self.n_agents = args.n_agents
         self.n_actions = args.n_actions
         self.logger = logger
+        self.obs_dim = obs_dim
+        self.action_dim = action_dim
 
         self.mac = mac
         self.old_mac = copy.deepcopy(mac)
