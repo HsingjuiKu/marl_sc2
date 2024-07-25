@@ -59,6 +59,9 @@ class PPOLearner:
         mask[:, 1:] = mask[:, 1:] * (1 - terminated[:, :-1])
         actions = actions[:, :-1]
 
+        # Create total reward pool
+        total_rewards = rewards.sum(dim=-1, keepdim=True) * self.n_agents
+
 
         # Reward redistribution
         with th.no_grad():
@@ -69,12 +72,10 @@ class PPOLearner:
 
         batch["reward"][:, :-1] = redistributed_rewards
 
+        # Standardize rewards if needed
         if self.args.standardise_rewards:
             self.rew_ms.update(redistributed_rewards)
             redistributed_rewards = (redistributed_rewards - self.rew_ms.mean) / th.sqrt(self.rew_ms.var)
-
-
-        
 
         # No experiences to train on in this minibatch
         if mask.sum() == 0:
@@ -100,6 +101,10 @@ class PPOLearner:
 
         for k in range(self.args.epochs):
             mac_out = []
+
+            all_advantages = []
+            all_critic_train_stats = []
+
             self.mac.init_hidden(batch.batch_size)
             for t in range(batch.max_seq_length - 1):
                 agent_outs = self.mac.forward(batch, t=t, t_env=t_env)
@@ -107,9 +112,27 @@ class PPOLearner:
             mac_out = th.stack(mac_out, dim=1)  # Concat over time
 
             pi = mac_out
-            advantages, critic_train_stats = self.train_critic_sequential(self.critic, self.target_critic, batch, redistributed_rewards,
-                                                                          critic_mask)
-            advantages = advantages.detach()
+
+            # advantages, critic_train_stats = self.train_critic_sequential(self.critic, self.target_critic, batch, redistributed_rewards,
+            #                                                               critic_mask)
+            # advantages = advantages.detach()
+
+            for agent_id in range(self.n_agents):
+                agent_rewards = redistributed_rewards[:, :, agent_id:agent_id + 1]
+                advantages, critic_train_stats = self.train_critic_sequential(
+                    self.critic, self.target_critic, batch, agent_rewards, critic_mask
+                )
+                all_advantages.append(advantages)
+                all_critic_train_stats.append(critic_train_stats)
+
+            # 合并所有智能体的优势
+            advantages = th.stack(all_advantages, dim=-1)
+
+            # # 合并所有智能体的critic训练统计
+            # combined_critic_train_stats = {
+            #     k: sum(stats[k] for stats in all_critic_train_stats) / len(all_critic_train_stats)
+            #     for k in all_critic_train_stats[0]
+            # }
             # Calculate policy grad with mask
 
             pi[mask == 0] = 1.0
