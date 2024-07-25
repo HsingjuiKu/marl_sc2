@@ -151,7 +151,7 @@ class PPOLearner:
 
             entropy = -th.sum(pi * th.log(pi + 1e-10), dim=-1)
             pg_loss = -((th.min(surr1, surr2) + self.args.entropy_coef * entropy) * mask).sum() / mask.sum()
-            # print(pg_loss)
+            print(pg_loss)
             # Optimise agents
             self.agent_optimiser.zero_grad()
             pg_loss.backward()
