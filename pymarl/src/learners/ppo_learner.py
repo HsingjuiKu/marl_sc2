@@ -72,8 +72,6 @@ class PPOLearner:
             tax_rates = self.redistribution_model.calculate_tax_rates(social_contribution_index)
             redistributed_rewards = self.redistribution_model.redistribute_rewards(rewards, social_contribution_index, tax_rates)
 
-        batch["reward"][:, :-1] = redistributed_rewards
-
         # Standardize rewards if needed
         if self.args.standardise_rewards:
             self.rew_ms.update(redistributed_rewards)
