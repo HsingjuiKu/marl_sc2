@@ -125,7 +125,7 @@ class PPOLearner:
 
             # 合并所有智能体的优势
             advantages = th.stack(all_advantages, dim=-1)
-            advantages = advantages.mean(dim = -1, keepdim = False)
+            advantages = advantages.mean(dim = -1, keepdim = False).detach()
 
             # 合并所有智能体的critic训练统计
             # Initialize an empty dictionary to store combined statistics
