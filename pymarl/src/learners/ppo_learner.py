@@ -20,7 +20,7 @@ class PPOLearner:
         self.logger = logger
         self.obs_dim = obs_dim
         self.action_dim = action_dim
-        print(obs_dim,action_dim )
+       
         self.mac = mac
         self.old_mac = copy.deepcopy(mac)
         self.agent_params = list(mac.parameters())
@@ -113,6 +113,7 @@ class PPOLearner:
             mac_out = th.stack(mac_out, dim=1)  # Concat over time
 
             pi = mac_out
+            print(self.obs_dim,self.action_dim )
             print(redistributed_rewards.shape, rewards.shape)
             # advantages, critic_train_stats = self.train_critic_sequential(self.critic, self.target_critic, batch, redistributed_rewards,
             #                                                               critic_mask)
