@@ -110,7 +110,6 @@ class PPOLearner:
             mac_out = th.stack(mac_out, dim=1)  # Concat over time
 
             pi = mac_out
-            print(redistributed_rewards.shape, rewards.shape)
             # advantages, critic_train_stats = self.train_critic_sequential(self.critic, self.target_critic, batch, redistributed_rewards,
             #                                                               critic_mask)
             # advantages = advantages.detach()
@@ -120,14 +119,14 @@ class PPOLearner:
                 advantages, critic_train_stats = self.train_critic_sequential(
                     self.critic, self.target_critic, batch, agent_rewards, critic_mask
                 )
+                print(critic_train_stats.shape)
                 all_advantages.append(advantages)
                 all_critic_train_stats.append(critic_train_stats)
 
             # 合并所有智能体的优势
             advantages = th.stack(all_advantages, dim=-1)
-            print(advantages.shape)
             advantages = advantages.mean(dim = -1, keepdim = False)
-            print(advantages.shape)
+
             # 合并所有智能体的critic训练统计
             combined_critic_train_stats = {
                 k: sum(stats[k] for stats in all_critic_train_stats) / len(all_critic_train_stats)
