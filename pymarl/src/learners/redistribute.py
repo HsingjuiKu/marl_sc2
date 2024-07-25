@@ -61,7 +61,7 @@ class EnhancedCausalModel(nn.Module):
         # l2_norm = influences.norm(p=2, dim=-1, keepdim=True)
         # influences = influences / (l2_norm + 1e-8) 
         # print(influences.shape)
-        influences = influences.mean(dim = -1, keepdim = False)
+        # influences = influences.mean(dim = -1, keepdim = False)
         influences = influences.unsqueeze(-1)
         # Calculate the sum along the second axis (dim=1)
         sums = influences.sum(dim=(1), keepdim=True)
@@ -69,7 +69,7 @@ class EnhancedCausalModel(nn.Module):
 
         # Normalize each value by dividing by the sum of its corresponding triplet
         influences = influences / sums
-
+        print(influences.shape)
         return influences
 
     def calculate_social_contribution_index(self, obs, actions):
