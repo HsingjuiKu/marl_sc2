@@ -20,7 +20,7 @@ class PPOLearner:
         self.logger = logger
         self.obs_dim = obs_dim
         self.action_dim = action_dim
-
+        print(obs_dim,action_dim )
         self.mac = mac
         self.old_mac = copy.deepcopy(mac)
         self.agent_params = list(mac.parameters())
