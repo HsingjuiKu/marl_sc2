@@ -104,6 +104,16 @@ class MADDPGLearner:
         critic_grad_norm = th.nn.utils.clip_grad_norm_(self.critic_params, self.args.grad_norm_clip)
         self.critic_optimiser.step()
 
+        # Reward redistribution
+        with th.no_grad():
+            obs = batch["obs"][:, :-1]
+            social_contribution_index = self.redistribution_model.calculate_social_contribution_index(obs, actions)
+            tax_rates = self.redistribution_model.calculate_tax_rates(social_contribution_index)
+            redistributed_rewards = self.redistribution_model.redistribute_rewards(rewards, social_contribution_index,
+                                                                                   tax_rates)
+
+        batch["reward"][:, :-1] = redistributed_rewards
+
         mac_out = []
         chosen_action_qvals = []
         self.mac.init_hidden(batch.batch_size)
