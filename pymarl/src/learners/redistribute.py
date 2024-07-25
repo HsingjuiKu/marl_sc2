@@ -36,11 +36,12 @@ class EnhancedCausalModel(nn.Module):
         influences = []
         
         adaptive_factor = max(10, num_agents)
-        
+        print(actions.shape)
         for k in range(num_agents):
             # agent_idx = k % num_agent
             obs_k = obs[:, :, k,:]
             action_k = actions[:, :episode_length, k,:]
+            print(action_k.shape)
             p_with_k = self.predict_others_actions(obs_k, action_k).to(self.device)
             p_without_k = self.predict_others_actions(obs_k, torch.zeros_like(action_k)).to(self.device)
             # print(p_with_k.shape,p_without_k.shape )
