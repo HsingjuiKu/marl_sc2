@@ -86,7 +86,7 @@ class PPOLearner:
             # print(rewards.shape)
             advantages, critic_train_stats = self.train_critic_sequential(self.critic, self.target_critic, batch, rewards,
                                                                           critic_mask)
-            # print(advantages.shape)
+            print(critic_train_stats)
             advantages = advantages.detach()
             # print(advantages.shape)
             # Calculate policy grad with mask
