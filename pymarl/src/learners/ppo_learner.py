@@ -115,11 +115,10 @@ class PPOLearner:
             # advantages = advantages.detach()
             for agent_id in range(self.n_agents):
                 agent_rewards = redistributed_rewards[:, :, agent_id].unsqueeze(-1)
-                print(agent_rewards)
                 advantages, critic_train_stats = self.train_critic_sequential(
                     self.critic, self.target_critic, batch, agent_rewards, critic_mask
                 )
-                print(critic_train_stats)
+               
                 all_advantages.append(advantages)
                 all_critic_train_stats.append(critic_train_stats)
 
@@ -128,10 +127,16 @@ class PPOLearner:
             advantages = advantages.mean(dim = -1, keepdim = False)
 
             # 合并所有智能体的critic训练统计
-            combined_critic_train_stats = {
-                k: sum(stats[k] for stats in all_critic_train_stats) / len(all_critic_train_stats)
-                for k in all_critic_train_stats[0]
-            }
+            # Initialize an empty dictionary to store combined statistics
+            critic_training_steps = {}
+            num_entries = len(all_critic_train_stats)
+            
+            # Iterate through each key in the dictionaries
+            for k in all_critic_train_stats[0]:
+                # Concatenate all lists for the current key
+                concatenated_values = np.concatenate([stats[k] for stats in all_critic_train_stats])
+                # Compute the mean of the concatenated list
+                critic_training_steps[k] = np.mean(concatenated_values)
             # Calculate policy grad with mask
 
             pi[mask == 0] = 1.0
