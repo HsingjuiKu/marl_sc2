@@ -126,7 +126,8 @@ class PPOLearner:
             # 合并所有智能体的优势
             advantages = th.stack(all_advantages, dim=-1)
             print(advantages.shape)
-
+            advantages = advantages.mean(dim = -1, keepdim = False)
+            print(advantages.shape)
             # 合并所有智能体的critic训练统计
             combined_critic_train_stats = {
                 k: sum(stats[k] for stats in all_critic_train_stats) / len(all_critic_train_stats)
