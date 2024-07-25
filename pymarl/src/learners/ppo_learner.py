@@ -66,6 +66,7 @@ class PPOLearner:
         # Reward redistribution
         with th.no_grad():
             obs = batch["obs"][:, :-1]
+            print(obs.shape, actions.shape)
             social_contribution_index = self.redistribution_model.calculate_social_contribution_index(obs, actions)
             tax_rates = self.redistribution_model.calculate_tax_rates(social_contribution_index)
             redistributed_rewards = self.redistribution_model.redistribute_rewards(rewards, social_contribution_index, tax_rates)
