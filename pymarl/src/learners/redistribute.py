@@ -68,6 +68,7 @@ class EnhancedCausalModel(nn.Module):
 
         # Normalize each value by dividing by the sum of its corresponding triplet
         influences = influences / sums
+        print(influences)
         return influences
 
     def calculate_social_contribution_index(self, obs, actions):
