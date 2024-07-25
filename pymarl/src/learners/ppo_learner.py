@@ -112,7 +112,7 @@ class PPOLearner:
             mac_out = th.stack(mac_out, dim=1)  # Concat over time
 
             pi = mac_out
-
+            print(redistributed_rewards.shape, rewards.shape)
             # advantages, critic_train_stats = self.train_critic_sequential(self.critic, self.target_critic, batch, redistributed_rewards,
             #                                                               critic_mask)
             # advantages = advantages.detach()
