@@ -44,7 +44,7 @@ class EnhancedCausalModel(nn.Module):
             p_without_k = self.predict_others_actions(obs_k, torch.zeros_like(action_k)).to(self.device)
             # print(p_with_k.shape,p_without_k.shape )
             for _ in range(adaptive_factor):
-                counterfactual_actions = torch.rand_like(action_k.float()).to(self.device)  # Generate random actions
+                counterfactual_actions = torch.rand_like(action_k).to(self.device)  # Generate random actions
                 p_without_k += self.predict_others_actions(obs_k, counterfactual_actions)
             p_without_k /= (adaptive_factor + 1)
 
