@@ -58,9 +58,7 @@ class PPOLearner:
         mask = batch["filled"][:, :-1].float()
         mask[:, 1:] = mask[:, 1:] * (1 - terminated[:, :-1])
         actions = actions[:, :-1]
-        if self.args.standardise_rewards:
-            self.rew_ms.update(rewards)
-            rewards = (rewards - self.rew_ms.mean) / th.sqrt(self.rew_ms.var)
+
 
         # Reward redistribution
         with th.no_grad():
@@ -70,6 +68,13 @@ class PPOLearner:
             redistributed_rewards = self.redistribution_model.redistribute_rewards(rewards, social_contribution_index, tax_rates)
 
         batch["reward"][:, :-1] = redistributed_rewards
+
+        if self.args.standardise_rewards:
+            self.rew_ms.update(redistributed_rewards)
+            redistributed_rewards = (redistributed_rewards - self.rew_ms.mean) / th.sqrt(self.rew_ms.var)
+
+
+        
 
         # No experiences to train on in this minibatch
         if mask.sum() == 0:
