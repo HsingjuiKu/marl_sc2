@@ -116,10 +116,12 @@ class PPOLearner:
 
             for agent_id in range(self.n_agents):
                 agent_rewards = redistributed_rewards[:, :, agent_id].unsqueeze(-1)
+                print(agent_rewards)
                 advantages, critic_train_stats = self.train_critic_sequential(
                     self.critic, self.target_critic, batch, agent_rewards, critic_mask
                 )
                 print(critic_train_stats)
+                print(advantage)
                 all_advantages.append(advantages)
                 all_critic_train_stats.append(critic_train_stats)
 
