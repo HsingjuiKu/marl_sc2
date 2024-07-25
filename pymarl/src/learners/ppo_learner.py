@@ -46,7 +46,7 @@ class PPOLearner:
         self.redistribution_model = EnhancedCausalModel(
             num_agents=self.n_agents,
             obs_dim=self.obs_dim,
-            action_dim=1,
+            action_dim=self.action_dim,
             device=self.args.device
         )
 
