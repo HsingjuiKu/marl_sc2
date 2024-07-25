@@ -120,7 +120,6 @@ class PPOLearner:
                     self.critic, self.target_critic, batch, agent_rewards, critic_mask
                 )
                 print(critic_train_stats)
-                print(advantages)
                 all_advantages.append(advantages)
                 all_critic_train_stats.append(critic_train_stats)
 
