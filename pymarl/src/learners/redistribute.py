@@ -40,12 +40,11 @@ class EnhancedCausalModel(nn.Module):
             # agent_idx = k % num_agent
             obs_k = obs[:, :, k,:]
             action_k = actions[:, :episode_length, k,:]
-            print(action_k)
             p_with_k = self.predict_others_actions(obs_k, action_k).to(self.device)
             p_without_k = self.predict_others_actions(obs_k, torch.zeros_like(action_k)).to(self.device)
             # print(p_with_k.shape,p_without_k.shape )
             for _ in range(adaptive_factor):
-                counterfactual_actions = torch.rand_like(action_k).to(self.device)  # Generate random actions
+                counterfactual_actions = torch.rand_like(action_k.float()).to(self.device)  # Generate random actions
                 p_without_k += self.predict_others_actions(obs_k, counterfactual_actions)
             p_without_k /= (adaptive_factor + 1)
 
