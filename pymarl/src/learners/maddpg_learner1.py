@@ -41,7 +41,10 @@ class MADDPGLearner:
             raise Exception("unknown optimizer {}".format(getattr(self.args, "optimizer", "rmsprop")))
 
         self.log_stats_t = -self.args.learner_log_interval - 1
-
+        
+        self.distillation_coef = 0.1
+        self.bottom_agents = n_agents 
+        
         # Initialize the EnhancedCausalModel for reward redistribution
         self.redistribution_model = EnhancedCausalModel(
             num_agents=self.n_agents,
@@ -57,14 +60,10 @@ class MADDPGLearner:
         terminated = batch["terminated"][:, :-1].float()
         mask = batch["filled"][:, :-1].float()
         mask[:, 1:] = mask[:, 1:] * (1 - terminated[:, :-1])
-        # Reward redistribution
-        with th.no_grad():
-            obs = batch["obs"][:, :-1]
-            social_contribution_index = self.redistribution_model.calculate_social_contribution_index(obs, actions)
-            tax_rates = self.redistribution_model.calculate_tax_rates(social_contribution_index)
-            redistributed_rewards = self.redistribution_model.redistribute_rewards(rewards, social_contribution_index, tax_rates)
 
-        batch["reward"][:, :-1] = redistributed_rewards
+        # calculate social influence for all samples in this batch
+        social_influence = self.redistribution_model.calculate_social_influence(obs, actions)
+        
         # Train the critic batched
         target_actions = []
         self.target_mac.init_hidden(batch.batch_size)
@@ -92,7 +91,7 @@ class MADDPGLearner:
 
         q_taken = q_taken.view(batch.batch_size, -1, 1)
         target_vals = target_vals.view(batch.batch_size, -1, 1)
-        targets = redistributed_rewards.expand_as(target_vals) + self.args.gamma * (1 - terminated.expand_as(target_vals)) * target_vals
+        targets = rewards.expand_as(target_vals) + self.args.gamma * (1 - terminated.expand_as(target_vals)) * target_vals
 
         td_error = (q_taken - targets.detach())
         mask = mask.expand_as(td_error)
@@ -103,17 +102,15 @@ class MADDPGLearner:
         loss.backward()
         critic_grad_norm = th.nn.utils.clip_grad_norm_(self.critic_params, self.args.grad_norm_clip)
         self.critic_optimiser.step()
+        
+        # 根据社会影响力排序，选择表现最好和最差的智能体
+        influence_scores = social_influence.mean(dim=(0, 1),keepdim = False)
+        top_agents = influence_scores.argsort(descending=True)[:self.n_agents - self.bottom_agents]
+        bottom_agents = influence_scores.argsort(descending=True)[-self.bottom_agents:]
 
-        # Reward redistribution
-        with th.no_grad():
-            obs = batch["obs"][:, :-1]
-            social_contribution_index = self.redistribution_model.calculate_social_contribution_index(obs, actions)
-            tax_rates = self.redistribution_model.calculate_tax_rates(social_contribution_index)
-            redistributed_rewards = self.redistribution_model.redistribute_rewards(rewards, social_contribution_index,
-                                                                                   tax_rates)
-
-        batch["reward"][:, :-1] = redistributed_rewards
-
+        # 为每个表现较差的智能体找到最相关的榜样智能体
+        teacher_agents = self.redistribution_model.find_most_relevant_teachers(bottom_agents, top_agents, batch)
+        
         mac_out = []
         chosen_action_qvals = []
         self.mac.init_hidden(batch.batch_size)
@@ -129,12 +126,23 @@ class MADDPGLearner:
                 chosen_action_qvals.append(q.view(batch.batch_size, -1, 1))
             mac_out.append(agent_outs)
         mac_out = th.stack(mac_out, dim=1)
+
+        # 计算策略蒸馏损失
+        distillation_loss = 0
+        for student_idx, teacher_idx in zip(bottom_agents, teacher_agents):
+            student_actions = mac_out[:, :, student_idx]
+            teacher_actions = mac_out.detach()[:, :, teacher_idx]
+            distillation_loss += self._compute_distillation_loss(student_actions, teacher_actions,
+                                                                 mask[:, :, student_idx])
+            
         chosen_action_qvals = th.stack(chosen_action_qvals, dim=1)
         pi = mac_out
 
         # Compute the actor loss
         pg_loss = -chosen_action_qvals.mean() + (pi**2).mean() * 1e-3
+        total_loss = pg_loss + self.distillation_coef * distillation_loss
 
+        
         # Optimise agents
         self.agent_optimiser.zero_grad()
         pg_loss.backward()
