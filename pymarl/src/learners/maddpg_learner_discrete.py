@@ -45,7 +45,7 @@ class MADDPGDiscreteLearner:
         self.critic_training_steps = 0
 
         self.distillation_coef = 0.1
-        self.bottom_agents = args.n_agents - args.n_agents / 4
+        self.bottom_agents = args.n_agents - int(args.n_agents / 4)
         
         # Initialize the EnhancedCausalModel for reward redistribution
         self.redistribution_model = EnhancedCausalModel(
