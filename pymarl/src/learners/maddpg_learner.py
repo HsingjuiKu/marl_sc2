@@ -61,6 +61,7 @@ class MADDPGLearner:
         mask = batch["filled"][:, :-1].float()
         mask[:, 1:] = mask[:, 1:] * (1 - terminated[:, :-1])
 
+        obs = batch["obs"][:, :-1]
         # calculate social influence for all samples in this batch
         social_influence = self.redistribution_model.calculate_social_influence(obs, actions)
         
