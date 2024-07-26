@@ -113,7 +113,7 @@ class MADDPGDiscreteLearner:
         self.mac.init_hidden(batch.batch_size)
         for t in range(batch.max_seq_length - 1):
             agent_outs = self.mac.select_actions(batch, t_ep=t, t_env=t_env, test_mode=False, explore=False)
-
+            print(agent_outs.shape)
             for idx in range(self.n_agents):
                 tem_joint_act = actions[:, t:t+1].detach().clone().view(batch.batch_size, -1, self.n_actions)
                 tem_joint_act[:, idx] = agent_outs[:, idx]
