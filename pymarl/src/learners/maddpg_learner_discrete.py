@@ -145,7 +145,7 @@ class MADDPGDiscreteLearner:
 
         # 将策略蒸馏损失添加到总损失中
         total_loss = pg_loss + self.distillation_coef * distillation_loss
-        print(pg_loss, distillation_loss, total_loss)
+        # print(pg_loss, distillation_loss, total_loss)
         # Optimise agents
         self.agent_optimiser.zero_grad()
         total_loss.backward()
