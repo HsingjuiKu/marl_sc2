@@ -78,5 +78,5 @@ class EnhancedCausalModel(nn.Module):
             teacher_actions.softmax(dim=-1),
             reduction='none'
         )
-    
-        return (kl_div.sum(dim=-1) * mask).sum() / mask.sum()
+        print(kl_div.shape)
+        return (kl_div.sum(dim=-1,keepdim = True) * mask).sum() / mask.sum()
