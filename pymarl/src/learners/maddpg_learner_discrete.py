@@ -63,6 +63,7 @@ class MADDPGDiscreteLearner:
         mask = batch["filled"].float()
         mask[:, 1:] = mask[:, 1:] * (1 - terminated[:, :-1])
         avail_actions = batch["avail_actions"][:, :-1]
+        copy_mask = mask
         
         # print(mask.shape)
         obs = batch["obs"][:, :-1]
@@ -136,7 +137,7 @@ class MADDPGDiscreteLearner:
             # print(student_actions.shape,teacher_actions.shape )
             # 计算这对学生-教师的蒸馏损失
             pair_distillation_loss = self.redistribution_model.compute_distillation_loss(student_actions, teacher_actions.detach(),
-                                                                     mask)
+                                                                     copy_mask)
             distillation_loss += pair_distillation_loss
             
         # Compute the actor loss
