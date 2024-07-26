@@ -64,6 +64,7 @@ class MADDPGLearner:
         obs = batch["obs"][:, :-1]
         # calculate social influence for all samples in this batch
         social_influence = self.redistribution_model.calculate_social_influence(obs, actions)
+        print(social_influence.shape)
         
         # Train the critic batched
         target_actions = []
@@ -108,7 +109,9 @@ class MADDPGLearner:
         influence_scores = social_influence.mean(dim=(0, 1),keepdim = False)
         top_agents = influence_scores.argsort(descending=True)[:self.n_agents - self.bottom_agents]
         bottom_agents = influence_scores.argsort(descending=True)[-self.bottom_agents:]
-
+        print(influence_scores.shape)
+        print(top_agents)
+        print(bottom_agents)
         # 为每个表现较差的智能体找到最相关的榜样智能体
         teacher_agents = self.redistribution_model.find_most_relevant_teachers(bottom_agents, top_agents, batch)
         
