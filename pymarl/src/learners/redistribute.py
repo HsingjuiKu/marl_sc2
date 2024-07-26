@@ -33,7 +33,7 @@ class EnhancedCausalModel(nn.Module):
         else: 
             batch_size, num_agents, obs_dim = obs.shape
         influences = []
-        # print(obs.shape, actions.shape)
+        print(obs.shape, actions.shape)
         adaptive_factor = max(10, num_agents)
 
         for k in range(num_agents):
