@@ -43,7 +43,7 @@ class MADDPGLearner:
         self.log_stats_t = -self.args.learner_log_interval - 1
         
         self.distillation_coef = 0.1
-        self.bottom_agents = n_agents 
+        self.bottom_agents = args.n_agents 
         
         # Initialize the EnhancedCausalModel for reward redistribution
         self.redistribution_model = EnhancedCausalModel(
