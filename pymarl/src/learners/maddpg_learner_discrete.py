@@ -44,6 +44,9 @@ class MADDPGDiscreteLearner:
         self.last_target_update_episode = 0
         self.critic_training_steps = 0
 
+        self.distillation_coef = 0.1
+        self.bottom_agents = args.n_agents 
+        
         # Initialize the EnhancedCausalModel for reward redistribution
         self.redistribution_model = EnhancedCausalModel(
             num_agents=self.n_agents,
@@ -51,7 +54,7 @@ class MADDPGDiscreteLearner:
             action_dim=self.action_dim,
             device=self.args.device
         )
-
+        
     def train(self, batch: EpisodeBatch, t_env: int, episode_num: int):
         # Get the relevant quantities
         rewards = batch["reward"][:, :-1]
@@ -60,20 +63,13 @@ class MADDPGDiscreteLearner:
         mask = batch["filled"].float()
         mask[:, 1:] = mask[:, 1:] * (1 - terminated[:, :-1])
         avail_actions = batch["avail_actions"][:, :-1]
-        # print(rewards.shape)
-        # print("--------",rewards,"------------")
-        # Reward redistribution
-        with th.no_grad():
-            obs = batch["obs"][:, :-1] 
-            # print(obs.shape)
-            social_contribution_index = self.redistribution_model.calculate_social_contribution_index(obs, actions)
-            # print(social_contribution_index)
-            tax_rates = self.redistribution_model.calculate_tax_rates(social_contribution_index)
-            redistributed_rewards = self.redistribution_model.redistribute_rewards(rewards, social_contribution_index, tax_rates)
-        # print(redistributed_rewards.shape)
-        # print("--------",redistributed_rewards,"------------")
-        batch["reward"][:, :-1] = redistributed_rewards
-
+        
+        print(mask.shape)
+        obs = batch["obs"][:, :-1]
+        # calculate social influence for all samples in this batch
+        social_influence = self.redistribution_model.calculate_social_influence(obs, actions)
+        print(social_influence.shape)
+        
         # Train the critic batched
         target_mac_out = []
         self.target_mac.init_hidden(batch.batch_size)
@@ -101,6 +97,18 @@ class MADDPGDiscreteLearner:
         self.critic_optimiser.step()
         self.critic_training_steps += 1
 
+
+        # 根据社会影响力排序，选择表现最好和最差的智能体
+        influence_scores = social_influence.mean(dim=(0, 1),keepdim = False)
+        top_agents = influence_scores.argsort(descending=True)[:self.n_agents - self.bottom_agents]
+        bottom_agents = influence_scores.argsort(descending=True)[-self.bottom_agents:]
+        print(influence_scores.shape)
+        print(top_agents)
+        print(bottom_agents)
+        # 为每个表现较差的智能体找到最相关的榜样智能体
+        teacher_agents = self.redistribution_model.find_most_relevant_teachers(bottom_agents, top_agents, batch)
+        print(teacher_agents)
+        
         chosen_action_qvals = []
         self.mac.init_hidden(batch.batch_size)
         for t in range(batch.max_seq_length - 1):
@@ -113,12 +121,24 @@ class MADDPGDiscreteLearner:
                 chosen_action_qvals.append(q.view(batch.batch_size, -1, 1))
         chosen_action_qvals = th.stack(chosen_action_qvals, dim=1)
 
+        # 计算策略蒸馏损失
+        distillation_loss = 0
+        for student_idx, teacher_idx in zip(bottom_agents, teacher_agents):
+            student_actions = self.mac.select_actions(batch, t_ep=None, t_env=t_env, test_mode=False,
+                                                      agent_id=student_idx)
+            teacher_actions = self.mac.select_actions(batch, t_ep=None, t_env=t_env, test_mode=True,
+                                                      agent_id=teacher_idx)
+            distillation_loss += self._compute_distillation_loss(student_actions, teacher_actions.detach(),
+                                                                 mask[:, :, student_idx])
         # Compute the actor loss
         pg_loss = -chosen_action_qvals.mean()
 
+        # 将策略蒸馏损失添加到总损失中
+        total_loss = pg_loss + self.distillation_coef * distillation_loss
+
         # Optimise agents
         self.agent_optimiser.zero_grad()
-        pg_loss.backward()
+        total_loss.backward()
         agent_grad_norm = th.nn.utils.clip_grad_norm_(self.agent_params, self.args.grad_norm_clip)
         self.agent_optimiser.step()
 
@@ -141,6 +161,8 @@ class MADDPGDiscreteLearner:
             self.logger.log_stat("pg_loss", pg_loss.item(), t_env)
             self.logger.log_stat("agent_grad_norm", agent_grad_norm, t_env)
             self.log_stats_t = t_env
+            self.logger.log_stat("distillation_loss", distillation_loss.item(), t_env)
+            self.logger.log_stat("total_loss", total_loss.item(), t_env)
 
     def _update_targets_soft(self, tau):
         for target_param, param in zip(self.target_mac.parameters(), self.mac.parameters()):
