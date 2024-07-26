@@ -29,7 +29,7 @@ class EnhancedCausalModel(nn.Module):
 
     def calculate_social_influence(self, obs, actions):
         if len(obs.shape) == 4:
-            batch_size, num_agents, episode_length, obs_dim = obs.shape
+            batch_size, episode_length, num_agents, obs_dim = obs.shape
         else: 
             batch_size, num_agents, obs_dim = obs.shape
         influences = []
