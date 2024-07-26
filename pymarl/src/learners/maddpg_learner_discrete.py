@@ -141,7 +141,7 @@ class MADDPGDiscreteLearner:
             teacher_actions = th.stack(teacher_actions, dim=1)  # [batch_size, time_steps, action_dim]
         
             # 计算这对学生-教师的蒸馏损失
-            pair_distillation_loss = self._compute_distillation_loss(student_actions, teacher_actions.detach(),
+            pair_distillation_loss = self.redistribution_model.compute_distillation_loss(student_actions, teacher_actions.detach(),
                                                                      mask[:, :, student_idx])
             distillation_loss += pair_distillation_loss
             
