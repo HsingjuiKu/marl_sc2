@@ -68,7 +68,7 @@ class MADDPGDiscreteLearner:
         obs = batch["obs"][:, :-1]
         # calculate social influence for all samples in this batch
         social_influence = self.redistribution_model.calculate_social_influence(obs, actions)
-        print(social_influence.shape)
+        # print(social_influence.shape)
         
         # Train the critic batched
         target_mac_out = []
@@ -102,12 +102,9 @@ class MADDPGDiscreteLearner:
         influence_scores = social_influence.mean(dim=(0, 1),keepdim = False)
         top_agents = influence_scores.argsort(descending=True)[:self.n_agents - self.bottom_agents]
         bottom_agents = influence_scores.argsort(descending=True)[-self.bottom_agents:]
-        print(influence_scores.shape)
-        print(top_agents)
-        print(bottom_agents)
         # 为每个表现较差的智能体找到最相关的榜样智能体
         teacher_agents = self.redistribution_model.find_most_relevant_teachers(bottom_agents, top_agents, batch)
-        print(teacher_agents)
+    
 
 
         # 计算策略蒸馏损失
@@ -132,17 +129,18 @@ class MADDPGDiscreteLearner:
             for t in range(batch.max_seq_length):
                 student_action = self.mac.select_actions(batch, t_ep=t, t_env=t_env, test_mode=False)[:,:,student_idx]
                 teacher_action = self.mac.select_actions(batch, t_ep=t, t_env=t_env, test_mode=True)[:,:,teacher_idx]
-                
+                print(student_idx,teacher_idx)
+                print(student_action.shape,teacher_action.shape)
                 student_actions.append(student_action)
                 teacher_actions.append(teacher_action)
         
             # 将列表转换为张量
             student_actions = th.stack(student_actions, dim=1)  # [batch_size, time_steps, action_dim]
             teacher_actions = th.stack(teacher_actions, dim=1)  # [batch_size, time_steps, action_dim]
-        
+            print(student_actions.shape,teacher_actions.shape )
             # 计算这对学生-教师的蒸馏损失
             pair_distillation_loss = self.redistribution_model.compute_distillation_loss(student_actions, teacher_actions.detach(),
-                                                                     mask[:, :, student_idx])
+                                                                     mask)
             distillation_loss += pair_distillation_loss
             
         # Compute the actor loss
