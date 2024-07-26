@@ -114,6 +114,7 @@ class MADDPGLearner:
         print(bottom_agents)
         # 为每个表现较差的智能体找到最相关的榜样智能体
         teacher_agents = self.redistribution_model.find_most_relevant_teachers(bottom_agents, top_agents, batch)
+        print(teacher_agents)
         
         mac_out = []
         chosen_action_qvals = []
