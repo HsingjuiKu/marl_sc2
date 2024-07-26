@@ -38,7 +38,7 @@ class EnhancedCausalModel(nn.Module):
 
         for k in range(num_agents):
             obs_k = obs[:, :, k,:]
-            action_k = actions[:, :, k,:]
+            action_k = actions[:, :episode_length, k,:]
             p_with_k = self.predict_others_actions(obs_k, action_k).to(self.device)
             p_without_k = self.predict_others_actions(obs_k, torch.zeros_like(action_k)).to(self.device)
             # print(p_with_k.shape,p_without_k.shape )
