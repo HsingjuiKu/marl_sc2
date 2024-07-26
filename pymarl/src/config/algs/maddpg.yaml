@@ -23,7 +23,7 @@ ou_noise_scale: 0.3
 final_ou_noise_scale: 0.
 gamma: 0.99
 grad_norm_clip: 10
-learner: "maddpg_learner_discrete"
+learner: "maddpg_learner"
 learn_interval: 1
 lr: 0.0025
 critic_lr: 0.0005
