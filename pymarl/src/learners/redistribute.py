@@ -53,6 +53,8 @@ class EnhancedCausalModel(nn.Module):
             nn.Linear(64, action_dim)
         ).to(device)
 
+        self.attention = AttentionModule(obs_dim, 128).to(device)
+
     def predict_others_actions(self, obs, action):
         return self.network(torch.cat([obs, action], dim=-1))
 
