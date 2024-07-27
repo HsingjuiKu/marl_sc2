@@ -129,7 +129,7 @@ class EnhancedCausalModel(nn.Module):
         expanded_reward_change = reward_change.unsqueeze(-1).expand(-1, -1, self.num_agents)
 
         # 计算合作得分：动作偏离度低且奖励变化正面的情况下得分高
-        cooperation_scores = ((1 - action_deviation) * F.relu(expanded_reward_change)).sum(dim=(0, 1))
+        cooperation_scores = ((1 - action_deviation[:,:-1,:]) * F.relu(expanded_reward_change)).sum(dim=(0, 1))
 
         return cooperation_scores
 
