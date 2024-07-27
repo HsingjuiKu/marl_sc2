@@ -101,6 +101,7 @@ class MADDPGDiscreteLearner:
 
 
         # 根据社会影响力排序，选择表现最好和最差的智能体
+        print(social_influence.shape)
         influence_scores = social_influence.mean(dim=(0, 1),keepdim = False)
         top_agents = influence_scores.argsort(descending=True)[:self.n_agents - self.bottom_agents]
         bottom_agents = influence_scores.argsort(descending=True)[-self.bottom_agents:]
