@@ -69,7 +69,7 @@ class MADDPGDiscreteLearner:
         # print(mask.shape)
         obs = batch["obs"][:, :-1]
         # calculate social influence for all samples in this batch
-        social_influence = self.redistribution_model.calculate_social_influence(obs, actions)
+        social_influence = self.redistribution_model.calculate_comprehensive_score(obs, actions,rewards)
         # print(social_influence.shape)
         
         # Train the critic batched
