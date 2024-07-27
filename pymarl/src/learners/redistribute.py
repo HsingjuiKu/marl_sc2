@@ -178,7 +178,7 @@ class EnhancedCausalModel(nn.Module):
             student_obs = batch["obs"][:, :, student]
             for j, teacher in enumerate(top_agents):
                 teacher_obs = batch["obs"][:, :, teacher]
-                print (student_obs.shape, teacher_obs.shape)
+                # print (student_obs.shape, teacher_obs.shape)
                 relevance_scores[i, j] = self.attention(student_obs, teacher_obs)
 
         _, teacher_indices = relevance_scores.max(dim=1)
