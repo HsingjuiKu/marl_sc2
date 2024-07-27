@@ -89,14 +89,20 @@ class EnhancedCausalModel(nn.Module):
         
         return influences
 
+    def calculate_performance_score(self, rewards, actions):
+        # rewards: [batch_size, episode_length, 1]
+        # actions: [batch_size, episode_length, num_agents, action_dim]
 
+        # 计算每个智能体的动作对全局奖励的贡献
+        action_influence = torch.abs(actions.sum(dim=3))  # [batch_size, episode_length, num_agents]
 
-    def calculate_performance_score(self, rewards):
-        # 计算每个智能体的累积奖励
-        cumulative_rewards = rewards.sum(dim=(0, 1))
-        # 归一化累积奖励
-        normalized_rewards = (cumulative_rewards - cumulative_rewards.mean()) / (cumulative_rewards.std() + 1e-8)
-        return normalized_rewards
+        # 将奖励扩展到每个智能体
+        expanded_rewards = rewards.expand(-1, -1, self.num_agents)
+
+        # 计算每个智能体的表现得分
+        performance_scores = (action_influence * expanded_rewards).sum(dim=(0, 1))
+
+        return performance_scores
 
     # def calculate_cooperation_score(self, team_reward, individual_rewards):
     #     # 计算每个智能体对团队奖励的贡献
@@ -104,24 +110,26 @@ class EnhancedCausalModel(nn.Module):
     #     individual_contribution = individual_rewards / (team_reward.unsqueeze(-1) + 1e-8)
     #     return torch.softmax(individual_contribution, dim=-1)
 
-    def calculate_cooperation_score(self, team_reward, individual_rewards):
-        # 确保维度匹配
-        if team_reward.dim() == 1:
-            team_reward = team_reward.unsqueeze(-1)
+    def calculate_cooperation_score(self, rewards, actions):
+        # rewards: [batch_size, episode_length, 1]
+        # actions: [batch_size, episode_length, num_agents, action_dim]
+        # 计算每个时间步的平均动作
+        mean_actions = actions.mean(dim=2, keepdim=True)
 
-        # 计算每个智能体的预期贡献（假设平均分配）
-        expected_contribution = team_reward / individual_rewards.shape[-1]
+        # 计算每个智能体的动作与平均动作的差异
+        action_deviation = torch.norm(actions - mean_actions, dim=3)  # [batch_size, episode_length, num_agents]
 
-        # 计算每个智能体的实际贡献与预期贡献的差异
-        contribution_diff = individual_rewards - expected_contribution
+        # 计算奖励的变化率
+        reward_change = torch.diff(rewards.squeeze(-1), dim=1)  # [batch_size, episode_length-1]
+        reward_change = F.pad(reward_change, (0, 1), mode='replicate')  # 填充到原始长度
 
-        # 归一化差异，使其总和为0
-        normalized_diff = contribution_diff / (team_reward + 1e-8)
+        # 将奖励变化扩展到每个智能体
+        expanded_reward_change = reward_change.unsqueeze(-1).expand(-1, -1, self.num_agents)
 
-        # 计算合作分数：正值表示高于预期的贡献，负值表示低于预期的贡献
-        cooperation_score = normalized_diff.sum(dim=(0, 1))  # 求和，得到每个智能体的总体得分
+        # 计算合作得分：动作偏离度低且奖励变化正面的情况下得分高
+        cooperation_scores = ((1 - action_deviation) * F.relu(expanded_reward_change)).sum(dim=(0, 1))
 
-        return cooperation_score
+        return cooperation_scores
 
     def calculate_innovation_score(self, actions):
         # 计算每个智能体行为的熵，衡量其创新性
