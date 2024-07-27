@@ -106,9 +106,9 @@ class MADDPGDiscreteLearner:
         top_agents = social_influence.argsort(descending=True)[:self.n_agents - self.bottom_agents]
         bottom_agents = social_influence.argsort(descending=True)[-self.bottom_agents:]
         # 为每个表现较差的智能体找到最相关的榜样智能体
-        print(bottom_agents,top_agents)
+        # print(bottom_agents,top_agents)
         teacher_agents = self.redistribution_model.find_most_relevant_teachers(bottom_agents, top_agents, batch)
-        print(bottom_agents,teacher_agents)
+        # print(bottom_agents,teacher_agents)
         # 计算策略蒸馏损失
         distillation_loss = 0
         chosen_action_qvals = []
@@ -124,7 +124,7 @@ class MADDPGDiscreteLearner:
         chosen_action_qvals = th.stack(chosen_action_qvals, dim=1)
 
         # 随机采样
-        sample_size = 0.1*batch.max_seq_length # 或其他合适的数字
+        sample_size = int(0.1*batch.max_seq_length) # 或其他合适的数字
         sampled_timesteps = np.random.choice(batch.max_seq_length, sample_size, replace=False)
 
         for student_idx, teacher_idx in zip(bottom_agents, teacher_agents):
