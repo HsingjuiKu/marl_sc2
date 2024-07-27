@@ -31,7 +31,7 @@ class AttentionModule(nn.Module):
         context = torch.matmul(attn_probs, v)
 
         # Compute relevance as the mean attention probability
-        relevance = attn_probs.mean(dim=(1, 2))  # [batch_size]
+        relevance = attn_probs.mean()  # [batch_size]
 
         return relevance
 
