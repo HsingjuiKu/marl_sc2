@@ -8,6 +8,7 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from redistribute import EnhancedCausalModel
+import numpy as np
 
 class MADDPGDiscreteLearner:
     def __init__(self, mac, scheme, logger, args, obs_dim, action_dim):
@@ -120,12 +121,17 @@ class MADDPGDiscreteLearner:
                 chosen_action_qvals.append(q.view(batch.batch_size, -1, 1))
         chosen_action_qvals = th.stack(chosen_action_qvals, dim=1)
 
+        # 随机采样
+        sample_size = 0.1*batch.max_seq_length # 或其他合适的数字
+        sampled_timesteps = np.random.choice(batch.max_seq_length, sample_size, replace=False)
+
         for student_idx, teacher_idx in zip(bottom_agents, teacher_agents):
             student_actions = []
             teacher_actions = []
         
             # 对批次中的每个时间步计算动作
-            for t in range(batch.max_seq_length):
+            # for t in range(batch.max_seq_length):
+            for t in sampled_timesteps:
                 student_action = self.mac.select_actions(batch, t_ep=t, t_env=t_env, test_mode=False)[:,:,student_idx]
                 teacher_action = self.mac.select_actions(batch, t_ep=t, t_env=t_env, test_mode=True)[:,:,teacher_idx]
                 student_actions.append(student_action)
@@ -144,7 +150,7 @@ class MADDPGDiscreteLearner:
         pg_loss = -chosen_action_qvals.mean()
 
         # 将策略蒸馏损失添加到总损失中
-        total_loss = pg_loss + self.distillation_coef * distillation_loss
+        total_loss = pg_loss - self.distillation_coef * distillation_loss
         # print(pg_loss, distillation_loss, total_loss)
         # Optimise agents
         self.agent_optimiser.zero_grad()
