@@ -106,6 +106,7 @@ class MADDPGDiscreteLearner:
         top_agents = social_influence.argsort(descending=True)[:self.n_agents - self.bottom_agents]
         bottom_agents = social_influence.argsort(descending=True)[-self.bottom_agents:]
         # 为每个表现较差的智能体找到最相关的榜样智能体
+        print(bottom_agents,top_agents)
         teacher_agents = self.redistribution_model.find_most_relevant_teachers(bottom_agents, top_agents, batch)
         print(bottom_agents,teacher_agents)
         # 计算策略蒸馏损失
