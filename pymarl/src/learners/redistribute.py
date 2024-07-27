@@ -102,7 +102,7 @@ class EnhancedCausalModel(nn.Module):
         expanded_rewards = rewards.expand(-1, -1, self.num_agents)
 
         # 计算每个智能体的表现得分
-        performance_scores = (action_influence[:-1] * expanded_rewards).sum(dim=(0, 1))
+        performance_scores = (action_influence[:,:-1,:] * expanded_rewards).sum(dim=(0, 1))
 
         return performance_scores
 
