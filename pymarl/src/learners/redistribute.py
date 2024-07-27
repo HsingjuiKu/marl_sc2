@@ -138,13 +138,13 @@ class EnhancedCausalModel(nn.Module):
         action_entropy = -torch.sum(actions * torch.log(actions + 1e-8), dim=-1)
         return action_entropy.mean(dim=(0, 1))
 
-    def calculate_comprehensive_score(self, obs, actions, rewards, team_reward):
+    def calculate_comprehensive_score(self, obs, actions, rewards):
         def min_max_normalize(x):
             return (x - x.min()) / (x.max() - x.min() + 1e-8)
 
         influence_scores = self.calculate_social_influence(obs, actions)
-        performance_scores = self.calculate_performance_score(rewards)
-        cooperation_scores = self.calculate_cooperation_score(team_reward, rewards)
+        performance_scores = self.calculate_performance_score(rewards, actions)
+        cooperation_scores = self.calculate_cooperation_score(rewards, actions)
         innovation_scores = self.calculate_innovation_score(actions)
 
         # 对每个得分进行min-max标准化
