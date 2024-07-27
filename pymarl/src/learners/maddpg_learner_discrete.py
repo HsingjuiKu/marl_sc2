@@ -176,9 +176,9 @@ class MADDPGDiscreteLearner:
             self.logger.log_stat("q_taken_mean", (q_taken * mask).sum().item() / mask_elems, t_env)
             self.logger.log_stat("pg_loss", pg_loss.item(), t_env)
             self.logger.log_stat("agent_grad_norm", agent_grad_norm, t_env)
-            self.log_stats_t = t_env
             self.logger.log_stat("distillation_loss", distillation_loss.item(), t_env)
             self.logger.log_stat("total_loss", total_loss.item(), t_env)
+            self.log_stats_t = t_env
 
     def _update_targets_soft(self, tau):
         for target_param, param in zip(self.target_mac.parameters(), self.mac.parameters()):
