@@ -7,7 +7,7 @@ from utils.rl_utils import build_td_lambda_targets
 
 
 class MADDPGDiscreteLearner:
-    def __init__(self, mac, scheme, logger, args):
+    def __init__(self, mac, scheme, logger, args, obs_dim, action_dim):
         self.args = args
         self.n_agents = args.n_agents
         self.n_actions = args.n_actions
