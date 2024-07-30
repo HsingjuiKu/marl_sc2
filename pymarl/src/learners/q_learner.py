@@ -8,7 +8,7 @@ from torch.optim import Adam
 
 
 class QLearner:
-    def __init__(self, mac, scheme, logger, args):
+    def __init__(self, mac, scheme, logger, args, obs_dim, action_dim):
         self.args = args
         self.mac = mac
         self.logger = logger

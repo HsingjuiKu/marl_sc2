@@ -35,8 +35,6 @@ class AttentionModule(nn.Module):
 
         return relevance
 
-
-
 class EnhancedCausalModel(nn.Module):
     def __init__(self, num_agents, obs_dim, action_dim, device):
         super().__init__()
