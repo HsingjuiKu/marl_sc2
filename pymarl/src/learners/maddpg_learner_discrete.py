@@ -4,11 +4,7 @@ from modules.critics.maddpg import MADDPGCritic
 import torch as th
 from torch.optim import RMSprop, Adam
 from utils.rl_utils import build_td_lambda_targets
-import sys
-import os
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from redistribute import EnhancedCausalModel
-import numpy as np
+
 
 class MADDPGDiscreteLearner:
     def __init__(self, mac, scheme, logger, args, obs_dim, action_dim):
@@ -16,8 +12,6 @@ class MADDPGDiscreteLearner:
         self.n_agents = args.n_agents
         self.n_actions = args.n_actions
         self.logger = logger
-        self.obs_dim = obs_dim
-        self.action_dim = action_dim
 
         self.mac = mac
         self.target_mac = copy.deepcopy(self.mac)
@@ -45,33 +39,16 @@ class MADDPGDiscreteLearner:
         self.last_target_update_episode = 0
         self.critic_training_steps = 0
 
-        self.distillation_coef = 0.01
-        self.bottom_agents = args.n_agents - int(args.n_agents / 4)
-        
-        # Initialize the EnhancedCausalModel for reward redistribution
-        self.redistribution_model = EnhancedCausalModel(
-            num_agents=self.n_agents,
-            obs_dim=self.obs_dim,
-            action_dim=self.action_dim,
-            device=self.args.device
-        )
-        
     def train(self, batch: EpisodeBatch, t_env: int, episode_num: int):
         # Get the relevant quantities
         rewards = batch["reward"][:, :-1]
+        # actions = batch["actions"][:, :]
         actions = batch["actions_onehot"][:, :]
         terminated = batch["terminated"].float()
         mask = batch["filled"].float()
         mask[:, 1:] = mask[:, 1:] * (1 - terminated[:, :-1])
         avail_actions = batch["avail_actions"][:, :-1]
-        copy_mask = mask
-        
-        # print(mask.shape)
-        obs = batch["obs"][:, :-1]
-        # calculate social influence for all samples in this batch
-        social_influence = self.redistribution_model.calculate_social_influence(obs, actions)
-        # print(social_influence.shape)
-        
+
         # Train the critic batched
         target_mac_out = []
         self.target_mac.init_hidden(batch.batch_size)
@@ -99,21 +76,11 @@ class MADDPGDiscreteLearner:
         self.critic_optimiser.step()
         self.critic_training_steps += 1
 
-
-        # 根据社会影响力排序，选择表现最好和最差的智能体
-        influence_scores = social_influence.mean(dim=(0, 1),keepdim = False)
-        top_agents = influence_scores.argsort(descending=True)[:self.n_agents - self.bottom_agents]
-        bottom_agents = influence_scores.argsort(descending=True)[-self.bottom_agents:]
-        # 为每个表现较差的智能体找到最相关的榜样智能体
-        teacher_agents = self.redistribution_model.find_most_relevant_teachers(bottom_agents, top_agents, batch)
-
-        # 计算策略蒸馏损失
-        distillation_loss = 0
         chosen_action_qvals = []
         self.mac.init_hidden(batch.batch_size)
         for t in range(batch.max_seq_length - 1):
             agent_outs = self.mac.select_actions(batch, t_ep=t, t_env=t_env, test_mode=False, explore=False)
-                
+
             for idx in range(self.n_agents):
                 tem_joint_act = actions[:, t:t+1].detach().clone().view(batch.batch_size, -1, self.n_actions)
                 tem_joint_act[:, idx] = agent_outs[:, idx]
@@ -121,40 +88,12 @@ class MADDPGDiscreteLearner:
                 chosen_action_qvals.append(q.view(batch.batch_size, -1, 1))
         chosen_action_qvals = th.stack(chosen_action_qvals, dim=1)
 
-        # 随机采样
-        sample_size = 0.1*batch.max_seq_length # 或其他合适的数字
-        sampled_timesteps = np.random.choice(batch.max_seq_length, sample_size, replace=False)
-
-        for student_idx, teacher_idx in zip(bottom_agents, teacher_agents):
-            student_actions = []
-            teacher_actions = []
-        
-            # 对批次中的每个时间步计算动作
-            # for t in range(batch.max_seq_length):
-            for t in sampled_timesteps:
-                student_action = self.mac.select_actions(batch, t_ep=t, t_env=t_env, test_mode=False)[:,:,student_idx]
-                teacher_action = self.mac.select_actions(batch, t_ep=t, t_env=t_env, test_mode=True)[:,:,teacher_idx]
-                student_actions.append(student_action)
-                teacher_actions.append(teacher_action)
-        
-            # 将列表转换为张量
-            student_actions = th.stack(student_actions, dim=1)  # [batch_size, time_steps, action_dim]
-            teacher_actions = th.stack(teacher_actions, dim=1)  # [batch_size, time_steps, action_dim]
-            # print(student_actions.shape,teacher_actions.shape )
-            # 计算这对学生-教师的蒸馏损失
-            pair_distillation_loss = self.redistribution_model.compute_distillation_loss(student_actions, teacher_actions.detach(),
-                                                                     copy_mask)
-            distillation_loss += pair_distillation_loss
-            
         # Compute the actor loss
         pg_loss = -chosen_action_qvals.mean()
 
-        # 将策略蒸馏损失添加到总损失中
-        total_loss = pg_loss - self.distillation_coef * distillation_loss
-        # print(pg_loss, distillation_loss, total_loss)
         # Optimise agents
         self.agent_optimiser.zero_grad()
-        total_loss.backward()
+        pg_loss.backward()
         agent_grad_norm = th.nn.utils.clip_grad_norm_(self.agent_params, self.args.grad_norm_clip)
         self.agent_optimiser.step()
 
@@ -174,10 +113,10 @@ class MADDPGDiscreteLearner:
             mask_elems = mask.sum().item()
             self.logger.log_stat("td_error_abs", masked_td_error.abs().sum().item() / mask_elems, t_env)
             self.logger.log_stat("q_taken_mean", (q_taken * mask).sum().item() / mask_elems, t_env)
+            # self.logger.log_stat("target_mean", targets.sum().item() / mask_elems, t_env)
             self.logger.log_stat("pg_loss", pg_loss.item(), t_env)
             self.logger.log_stat("agent_grad_norm", agent_grad_norm, t_env)
-            self.logger.log_stat("distillation_loss", distillation_loss.item(), t_env)
-            self.logger.log_stat("total_loss", total_loss.item(), t_env)
+            # self.logger.log_stat("pi_max", (pi.max(dim=-1)[0] * mask).sum().item() / mask_elems, t_env)
             self.log_stats_t = t_env
 
     def _update_targets_soft(self, tau):

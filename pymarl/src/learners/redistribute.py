@@ -31,7 +31,7 @@ class AttentionModule(nn.Module):
         context = torch.matmul(attn_probs, v)
 
         # Compute relevance as the mean attention probability
-        relevance = attn_probs.mean(dim=(1, 2))  # [batch_size]
+        relevance = attn_probs.mean()  # [batch_size]
 
         return relevance
 
@@ -100,7 +100,7 @@ class EnhancedCausalModel(nn.Module):
         expanded_rewards = rewards.expand(-1, -1, self.num_agents)
 
         # 计算每个智能体的表现得分
-        performance_scores = (action_influence * expanded_rewards).sum(dim=(0, 1))
+        performance_scores = (action_influence[:,:-1,:] * expanded_rewards).sum(dim=(0, 1))
 
         return performance_scores
 
@@ -127,7 +127,7 @@ class EnhancedCausalModel(nn.Module):
         expanded_reward_change = reward_change.unsqueeze(-1).expand(-1, -1, self.num_agents)
 
         # 计算合作得分：动作偏离度低且奖励变化正面的情况下得分高
-        cooperation_scores = ((1 - action_deviation) * F.relu(expanded_reward_change)).sum(dim=(0, 1))
+        cooperation_scores = ((1 - action_deviation[:,:-1,:]) * F.relu(expanded_reward_change)).sum(dim=(0, 1))
 
         return cooperation_scores
 
@@ -153,9 +153,9 @@ class EnhancedCausalModel(nn.Module):
 
         # 综合评分，可以根据需要调整权重
         comprehensive_scores = (
-                normalized_influence * 0.3 +
-                normalized_performance * 0.3 +
-                normalized_cooperation * 0.3 +
+                normalized_influence * 0.4 +
+                normalized_performance * 0.25 +
+                normalized_cooperation * 0.25 +
                 normalized_innovation * 0.1
         )
         return comprehensive_scores
@@ -176,6 +176,7 @@ class EnhancedCausalModel(nn.Module):
             student_obs = batch["obs"][:, :, student]
             for j, teacher in enumerate(top_agents):
                 teacher_obs = batch["obs"][:, :, teacher]
+                # print (student_obs.shape, teacher_obs.shape)
                 relevance_scores[i, j] = self.attention(student_obs, teacher_obs)
 
         _, teacher_indices = relevance_scores.max(dim=1)
