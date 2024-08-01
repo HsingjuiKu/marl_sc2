@@ -121,7 +121,8 @@ class EnhancedCausalModel(nn.Module):
 
         # 计算奖励的变化率
         reward_change = torch.diff(rewards.squeeze(-1), dim=1)  # [batch_size, episode_length-1]
-        reward_change = F.pad(reward_change, (0, 1), mode='replicate')  # 填充到原始长度
+        print(reward_change.shape )
+        # reward_change = F.pad(reward_change, (0, 1), mode='replicate')  # 填充到原始长度
 
         # 将奖励变化扩展到每个智能体
         expanded_reward_change = reward_change.unsqueeze(-1).expand(-1, -1, self.num_agents)
