@@ -58,10 +58,6 @@ class QLearner:
             device=self.args.device
         )
 
-
-
-
-
     def train(self, batch: EpisodeBatch, t_env: int, episode_num: int):
         print("Training!!!!!!")
         # Get the relevant quantities
@@ -115,6 +111,7 @@ class QLearner:
         targets = rewards + self.args.gamma * (1 - terminated) * target_max_qvals
 
         # 计算综合得分
+        print(batch["obs"][:, :-1].shape, actions.shape,rewards.shape)
         comprehensive_scores = self.distillation_model.calculate_comprehensive_score(
             batch["obs"][:, :-1], actions, rewards
         )
