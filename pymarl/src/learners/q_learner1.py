@@ -147,7 +147,7 @@ class QLearner:
         print(distillation_loss)
        
         total = loss + self.distillation_coef * distillation_loss
-         print(total)
+        # print(total)
         # Optimise
         self.optimiser.zero_grad()
         total.backward()
