@@ -8,7 +8,7 @@ from torch.optim import Adam
 
 
 class QLearner:
-    def __init__(self, mac, scheme, logger, args):
+    def __init__(self, mac, scheme, logger, args,obs_dim, action_dim):
         print("原来他们的狗屁算法，启动！")
         self.args = args
         self.mac = mac
