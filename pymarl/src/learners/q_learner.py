@@ -5,21 +5,13 @@ from modules.mixers.qmix import QMixer
 import torch as th
 from torch.optim import RMSprop
 from torch.optim import Adam
-import sys
-import os
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from redistribute_c import EnhancedCausalModel
+
 
 class QLearner:
     def __init__(self, mac, scheme, logger, args, obs_dim, action_dim):
         self.args = args
         self.mac = mac
         self.logger = logger
-        self.n_agents = args.n_agents
-        self.n_actions = args.n_actions
-        
-        self.obs_dim = obs_dim
-        self.action_dim = action_dim
 
         self.params = list(mac.parameters())
 
@@ -48,18 +40,7 @@ class QLearner:
 
         self.log_stats_t = -self.args.learner_log_interval - 1
 
-        self.distillation_coef = 0.01
-        self.bottom_agents = args.n_agents - int(args.n_agents / 4)
-
-        self.distillation_model = EnhancedCausalModel(
-            num_agents=self.n_agents,
-            obs_dim=self.obs_dim,
-            action_dim=self.action_dim,
-            device=self.args.device
-        )
-
     def train(self, batch: EpisodeBatch, t_env: int, episode_num: int):
-        # print("Training!!!!!!")
         # Get the relevant quantities
         rewards = batch["reward"][:, :-1]
         actions = batch["actions"][:, :-1]
@@ -110,19 +91,6 @@ class QLearner:
         # Calculate 1-step Q-Learning targets
         targets = rewards + self.args.gamma * (1 - terminated) * target_max_qvals
 
-        # 计算综合得分
-        # print(batch["obs"][:, :-1].shape, actions.shape,rewards.shape)
-        comprehensive_scores = self.distillation_model.calculate_comprehensive_score(
-            batch["obs"][:, :-1], actions, rewards
-        )
-
-        # 选择表现最好和最差的智能体
-        top_agents = comprehensive_scores.argsort(descending=True)[:self.n_agents - self.bottom_agents]
-        bottom_agents = comprehensive_scores.argsort(descending=True)[-self.bottom_agents:]
-
-        # 为每个表现较差的智能体找到最相关的榜样智能体
-        teacher_agents = self.distillation_model.find_most_relevant_teachers(bottom_agents, top_agents, batch)
-       
         # Td-error
         td_error = (chosen_action_qvals - targets.detach())
 
@@ -133,24 +101,10 @@ class QLearner:
 
         # Normal L2 loss, take mean over actual data
         loss = (masked_td_error ** 2).sum() / mask.sum()
-        print(loss)
 
-        
-        # 计算蒸馏损失
-        distillation_loss = 0
-        for student_idx, teacher_idx in zip(bottom_agents, teacher_agents):
-            student_q_values = mac_out[:, :-1, student_idx]
-            teacher_q_values = mac_out.detach()[:, :-1, teacher_idx]
-            distillation_loss += self.distillation_model.compute_distillation_loss(
-                student_q_values, teacher_q_values, mask
-            )
-        print(distillation_loss)
-       
-        total = loss + self.distillation_coef * distillation_loss
-         print(total)
         # Optimise
         self.optimiser.zero_grad()
-        total.backward()
+        loss.backward()
         grad_norm = th.nn.utils.clip_grad_norm_(self.params, self.args.grad_norm_clip)
         self.optimiser.step()
 
@@ -160,8 +114,6 @@ class QLearner:
 
         if t_env - self.log_stats_t >= self.args.learner_log_interval:
             self.logger.log_stat("loss", loss.item(), t_env)
-            self.logger.log_stat("Total loss", total.item(), t_env)
-            self.logger.log_stat("distillation_loss", distillation_loss.item(), t_env)
             self.logger.log_stat("grad_norm", grad_norm.item(), t_env)
             mask_elems = mask.sum().item()
             self.logger.log_stat("td_error_abs", (masked_td_error.abs().sum().item()/mask_elems), t_env)
