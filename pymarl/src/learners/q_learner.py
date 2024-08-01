@@ -146,7 +146,7 @@ class QLearner:
                 student_q_values, teacher_q_values, mask
             )
 
-        loss = loss + self.args.distillation_coef * distillation_loss
+        loss = loss + self.distillation_coef * distillation_loss
 
         # Optimise
         self.optimiser.zero_grad()
