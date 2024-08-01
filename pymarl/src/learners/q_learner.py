@@ -15,7 +15,9 @@ class QLearner:
         self.args = args
         self.mac = mac
         self.logger = logger
-
+        self.n_agents = args.n_agents
+        self.n_actions = args.n_actions
+        
         self.obs_dim = obs_dim
         self.action_dim = action_dim
 
