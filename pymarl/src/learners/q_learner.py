@@ -144,12 +144,13 @@ class QLearner:
             distillation_loss += self.distillation_model.compute_distillation_loss(
                 student_q_values, teacher_q_values, mask
             )
-
-        loss = loss + self.distillation_coef * distillation_loss
-
+        print(distillation_loss)
+       
+        total = loss + self.distillation_coef * distillation_loss
+         print(total)
         # Optimise
         self.optimiser.zero_grad()
-        loss.backward()
+        total.backward()
         grad_norm = th.nn.utils.clip_grad_norm_(self.params, self.args.grad_norm_clip)
         self.optimiser.step()
 
@@ -159,6 +160,8 @@ class QLearner:
 
         if t_env - self.log_stats_t >= self.args.learner_log_interval:
             self.logger.log_stat("loss", loss.item(), t_env)
+            self.logger.log_stat("Total loss", total.item(), t_env)
+            self.logger.log_stat("distillation_loss", distillation_loss.item(), t_env)
             self.logger.log_stat("grad_norm", grad_norm.item(), t_env)
             mask_elems = mask.sum().item()
             self.logger.log_stat("td_error_abs", (masked_td_error.abs().sum().item()/mask_elems), t_env)
