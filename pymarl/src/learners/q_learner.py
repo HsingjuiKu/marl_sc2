@@ -122,7 +122,8 @@ class QLearner:
 
         # 为每个表现较差的智能体找到最相关的榜样智能体
         teacher_agents = self.distillation_model.find_most_relevant_teachers(bottom_agents, top_agents, batch)
-
+        print(teacher_agents)
+        print(bottom_agents)
         # 计算蒸馏损失
         distillation_loss = 0
         for student_idx, teacher_idx in zip(bottom_agents, teacher_agents):
