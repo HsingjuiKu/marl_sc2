@@ -133,7 +133,7 @@ class QLearner:
 
         # Normal L2 loss, take mean over actual data
         loss = (masked_td_error ** 2).sum() / mask.sum()
-        print(loss)
+        # print(loss)
 
         
         # 计算蒸馏损失
@@ -144,10 +144,10 @@ class QLearner:
             distillation_loss += self.distillation_model.compute_distillation_loss(
                 student_q_values, teacher_q_values, mask
             )
-        print(distillation_loss)
+        # print(distillation_loss)
        
         total = loss + self.distillation_coef * distillation_loss
-        print(total)
+        # print(total)
         # Optimise
         self.optimiser.zero_grad()
         total.backward()
