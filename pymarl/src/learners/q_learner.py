@@ -48,7 +48,7 @@ class QLearner:
 
         self.log_stats_t = -self.args.learner_log_interval - 1
 
-        self.distillation_coef = 0.01
+        self.distillation_coef = 0.5
         self.bottom_agents = args.n_agents - int(args.n_agents / 4)
 
         self.distillation_model = EnhancedCausalModel(
