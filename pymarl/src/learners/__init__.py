@@ -1,4 +1,4 @@
-from .q_learner1 import QLearner
+from .q_learner import QLearner
 from .iqn_learner import IQNLearner
 from .coma_learner import COMALearner
 from .qtran_learner import QLearner as QTranLearner
