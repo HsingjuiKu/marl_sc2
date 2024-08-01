@@ -24,7 +24,7 @@ class QLearner:
         self.params = list(mac.parameters())
 
         self.last_target_update_episode = 0
-
+        print("咱们的算法 qmix, 启动！")
         self.mixer = None
         if args.mixer is not None:
             if args.mixer == "vdn":
