@@ -185,12 +185,18 @@ class EnhancedCausalModel(nn.Module):
         _, teacher_indices = relevance_scores.max(dim=1)
         return [top_agents[i] for i in teacher_indices]
 
-    def compute_distillation_loss(self, student_actions, teacher_actions, mask):
-        # 使用KL散度作为蒸馏损失
-        kl_div = F.kl_div(
-            student_actions.log_softmax(dim=-1),
-            teacher_actions.softmax(dim=-1),
-            reduction='none'
-        )
-        # print(kl_div.shape, mask.shape)
-        return (kl_div.sum(dim=-1,keepdim = True) * mask).sum() / mask.sum()
+    # def compute_distillation_loss(self, student_actions, teacher_actions, mask):
+    #     # 使用KL散度作为蒸馏损失
+    #     kl_div = F.kl_div(
+    #         student_actions.log_softmax(dim=-1),
+    #         teacher_actions.softmax(dim=-1),
+    #         reduction='none'
+    #     )
+    #     # print(kl_div.shape, mask.shape)
+    #     return (kl_div.sum(dim=-1,keepdim = True) * mask).sum() / mask.sum()
+
+    def compute_distillation_loss(self, student_actions, teacher_actions, mask, temperature=2.0):
+        soft_student = (student_actions / temperature).softmax(dim=-1)
+        soft_teacher = (teacher_actions / temperature).softmax(dim=-1)
+        kl_div = F.kl_div(soft_student.log(), soft_teacher, reduction='none')
+        return (temperature ** 2 * kl_div.sum(dim=-1, keepdim=True) * mask).sum() / mask.sum()

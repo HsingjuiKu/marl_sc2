@@ -48,7 +48,7 @@ class QLearner:
 
         self.log_stats_t = -self.args.learner_log_interval - 1
 
-        self.distillation_coef = 0.5
+        self.distillation_coef = 0.001
         self.bottom_agents = args.n_agents - int(args.n_agents / 4)
 
         self.distillation_model = EnhancedCausalModel(
@@ -133,7 +133,7 @@ class QLearner:
 
         # Normal L2 loss, take mean over actual data
         loss = (masked_td_error ** 2).sum() / mask.sum()
-        # print(loss)
+        print(loss)
 
         
         # 计算蒸馏损失
@@ -144,7 +144,7 @@ class QLearner:
             distillation_loss += self.distillation_model.compute_distillation_loss(
                 student_q_values, teacher_q_values, mask
             )
-        # print(distillation_loss)
+        print(distillation_loss)
        
         total = loss + self.distillation_coef * distillation_loss
         # print(total)
