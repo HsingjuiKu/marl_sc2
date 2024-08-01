@@ -143,7 +143,7 @@ class QLearner:
             student_q_values = mac_out[:, :-1, student_idx]
             teacher_q_values = mac_out.detach()[:, :-1, teacher_idx]
             distillation_loss += self.distillation_model.compute_distillation_loss(
-                student_q_values, teacher_q_values, mask[:, :, student_idx]
+                student_q_values, teacher_q_values, mask
             )
 
         loss = loss + self.args.distillation_coef * distillation_loss
