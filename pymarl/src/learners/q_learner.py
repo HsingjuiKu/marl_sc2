@@ -123,14 +123,6 @@ class QLearner:
         # 为每个表现较差的智能体找到最相关的榜样智能体
         teacher_agents = self.distillation_model.find_most_relevant_teachers(bottom_agents, top_agents, batch)
         print(mask.shape)
-        # 计算蒸馏损失
-        distillation_loss = 0
-        for student_idx, teacher_idx in zip(bottom_agents, teacher_agents):
-            student_q_values = mac_out[:, :-1, student_idx]
-            teacher_q_values = mac_out.detach()[:, :-1, teacher_idx]
-            distillation_loss += self.distillation_model.compute_distillation_loss(
-                student_q_values, teacher_q_values, mask[:, :, student_idx]
-            )
 
         # Td-error
         td_error = (chosen_action_qvals - targets.detach())
@@ -143,6 +135,17 @@ class QLearner:
         # Normal L2 loss, take mean over actual data
         loss = (masked_td_error ** 2).sum() / mask.sum()
         print(loss)
+        print(mask.shape)
+        
+        # 计算蒸馏损失
+        distillation_loss = 0
+        for student_idx, teacher_idx in zip(bottom_agents, teacher_agents):
+            student_q_values = mac_out[:, :-1, student_idx]
+            teacher_q_values = mac_out.detach()[:, :-1, teacher_idx]
+            distillation_loss += self.distillation_model.compute_distillation_loss(
+                student_q_values, teacher_q_values, mask[:, :, student_idx]
+            )
+
         loss = loss + self.args.distillation_coef * distillation_loss
 
         # Optimise
