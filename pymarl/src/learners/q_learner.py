@@ -58,6 +58,7 @@ class QLearner:
 
 
     def train(self, batch: EpisodeBatch, t_env: int, episode_num: int):
+        print("Training!!!!!!")
         # Get the relevant quantities
         rewards = batch["reward"][:, :-1]
         actions = batch["actions"][:, :-1]
