@@ -9,7 +9,6 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from redistribute import EnhancedCausalModel
-import numpy as np
 
 class QLearner:
     def __init__(self, mac, scheme, logger, args, obs_dim, action_dim):
@@ -52,7 +51,6 @@ class QLearner:
         self.distillation_coef = 0.01
         self.bottom_agents = args.n_agents - int(args.n_agents / 4)
 
-        # Initialize the EnhancedCausalModel for reward redistribution
         self.distillation_model = EnhancedCausalModel(
             num_agents=self.n_agents,
             obs_dim=self.obs_dim,
@@ -60,11 +58,8 @@ class QLearner:
             device=self.args.device
         )
 
-
-
-
-
     def train(self, batch: EpisodeBatch, t_env: int, episode_num: int):
+        print("Training!!!!!!")
         # Get the relevant quantities
         rewards = batch["reward"][:, :-1]
         actions = batch["actions"][:, :-1]
@@ -72,14 +67,6 @@ class QLearner:
         mask = batch["filled"][:, :-1].float()
         mask[:, 1:] = mask[:, 1:] * (1 - terminated[:, :-1])
         avail_actions = batch["avail_actions"]
-
-        copy_mask = mask
-
-        # print(mask.shape)
-        obs = batch["obs"][:, :-1]
-        # calculate social influence for all samples in this batch
-        social_influence = self.distillation_model.calculate_comprehensive_score(obs, actions, rewards)
-        # print(social_influence.shape)
 
         # Calculate estimated Q-Values
         mac_out = []
@@ -123,56 +110,27 @@ class QLearner:
         # Calculate 1-step Q-Learning targets
         targets = rewards + self.args.gamma * (1 - terminated) * target_max_qvals
 
-        # 根据社会影响力排序，选择表现最好和最差的智能体
-        # print(social_influence.shape)
-        # influence_scores = social_influence.mean(dim=(0, 1),keepdim = False)
-        top_agents = social_influence.argsort(descending=True)[:self.n_agents - self.bottom_agents]
-        bottom_agents = social_influence.argsort(descending=True)[-self.bottom_agents:]
+        # 计算综合得分
+        print(batch["obs"][:, :-1].shape, actions.shape,rewards.shape)
+        comprehensive_scores = self.distillation_model.calculate_comprehensive_score(
+            batch["obs"][:, :-1], actions, rewards
+        )
+
+        # 选择表现最好和最差的智能体
+        top_agents = comprehensive_scores.argsort(descending=True)[:self.n_agents - self.bottom_agents]
+        bottom_agents = comprehensive_scores.argsort(descending=True)[-self.bottom_agents:]
+
         # 为每个表现较差的智能体找到最相关的榜样智能体
-        # print(bottom_agents,top_agents)
         teacher_agents = self.distillation_model.find_most_relevant_teachers(bottom_agents, top_agents, batch)
-        # print(bottom_agents,teacher_agents)
-        # 计算策略蒸馏损失
+
+        # 计算蒸馏损失
         distillation_loss = 0
-        chosen_action_qvals = []
-        self.mac.init_hidden(batch.batch_size)
-        for t in range(batch.max_seq_length - 1):
-            agent_outs = self.mac.select_actions(batch, t_ep=t, t_env=t_env, test_mode=False, explore=False)
-
-            for idx in range(self.n_agents):
-                tem_joint_act = actions[:, t:t + 1].detach().clone().view(batch.batch_size, -1, self.n_actions)
-                tem_joint_act[:, idx] = agent_outs[:, idx]
-                q, _ = self.critic(self._build_inputs(batch, t=t), tem_joint_act)
-                chosen_action_qvals.append(q.view(batch.batch_size, -1, 1))
-        chosen_action_qvals = th.stack(chosen_action_qvals, dim=1)
-
-        # 随机采样
-        sample_size = int(0.1 * batch.max_seq_length)  # 或其他合适的数字
-        sampled_timesteps = np.random.choice(batch.max_seq_length, sample_size, replace=False)
-
         for student_idx, teacher_idx in zip(bottom_agents, teacher_agents):
-            student_actions = []
-            teacher_actions = []
-
-            # 对批次中的每个时间步计算动作
-            # for t in range(batch.max_seq_length):
-            for t in sampled_timesteps:
-                student_action = self.mac.select_actions(batch, t_ep=t, t_env=t_env, test_mode=False)[:, :, student_idx]
-                teacher_action = self.mac.select_actions(batch, t_ep=t, t_env=t_env, test_mode=True)[:, :, teacher_idx]
-                student_actions.append(student_action)
-                teacher_actions.append(teacher_action)
-
-            # 将列表转换为张量
-            student_actions = th.stack(student_actions, dim=1)  # [batch_size, time_steps, action_dim]
-            teacher_actions = th.stack(teacher_actions, dim=1)  # [batch_size, time_steps, action_dim]
-            # print(student_actions.shape,teacher_actions.shape )
-            # 计算这对学生-教师的蒸馏损失
-            pair_distillation_loss = self.distillation_model.compute_distillation_loss(student_actions,
-                                                                                         teacher_actions.detach(),
-                                                                                         copy_mask[:, sampled_timesteps,
-                                                                                         :])
-            distillation_loss += pair_distillation_loss
-
+            student_q_values = mac_out[:, :-1, student_idx]
+            teacher_q_values = mac_out.detach()[:, :-1, teacher_idx]
+            distillation_loss += self.distillation_model.compute_distillation_loss(
+                student_q_values, teacher_q_values, mask[:, :, student_idx]
+            )
 
         # Td-error
         td_error = (chosen_action_qvals - targets.detach())
