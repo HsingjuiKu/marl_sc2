@@ -193,4 +193,4 @@ class EnhancedCausalModel(nn.Module):
             reduction='none'
         )
         print(kl_div.shape, mask.shape)
-        return (kl_div.sum(dim=-1,keepdim = True) * mask).sum() / mask.sum()
+        return (kl_div.sum(dim=-1,keepdim = False) * mask).sum() / mask.sum()
