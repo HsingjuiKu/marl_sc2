@@ -5,6 +5,9 @@ from modules.mixers.qmix import QMixer
 import torch as th
 from torch.optim import RMSprop
 from torch.optim import Adam
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from redistribute import EnhancedCausalModel
 
 class QLearner:
