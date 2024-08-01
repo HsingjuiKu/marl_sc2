@@ -59,7 +59,7 @@ class QLearner:
         )
 
     def train(self, batch: EpisodeBatch, t_env: int, episode_num: int):
-        print("Training!!!!!!")
+        # print("Training!!!!!!")
         # Get the relevant quantities
         rewards = batch["reward"][:, :-1]
         actions = batch["actions"][:, :-1]
@@ -111,7 +111,7 @@ class QLearner:
         targets = rewards + self.args.gamma * (1 - terminated) * target_max_qvals
 
         # 计算综合得分
-        print(batch["obs"][:, :-1].shape, actions.shape,rewards.shape)
+        # print(batch["obs"][:, :-1].shape, actions.shape,rewards.shape)
         comprehensive_scores = self.distillation_model.calculate_comprehensive_score(
             batch["obs"][:, :-1], actions, rewards
         )
@@ -122,8 +122,7 @@ class QLearner:
 
         # 为每个表现较差的智能体找到最相关的榜样智能体
         teacher_agents = self.distillation_model.find_most_relevant_teachers(bottom_agents, top_agents, batch)
-        print(mask.shape)
-
+       
         # Td-error
         td_error = (chosen_action_qvals - targets.detach())
 
@@ -135,7 +134,7 @@ class QLearner:
         # Normal L2 loss, take mean over actual data
         loss = (masked_td_error ** 2).sum() / mask.sum()
         print(loss)
-        print(mask.shape)
+
         
         # 计算蒸馏损失
         distillation_loss = 0
