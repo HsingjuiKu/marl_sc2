@@ -9,6 +9,7 @@ from torch.optim import Adam
 
 class QLearner:
     def __init__(self, mac, scheme, logger, args):
+        print("他们狗屁算法，启动！")
         self.args = args
         self.mac = mac
         self.logger = logger
