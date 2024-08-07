@@ -11,6 +11,7 @@ from components.standarize_stream import RunningMeanStd
 
 class PPOLearner:
     def __init__(self, mac, scheme, logger, args, obs_dim, action_dim):
+        print("原来的狗屁算法，启动！")
         self.args = args
         self.n_agents = args.n_agents
         self.n_actions = args.n_actions
