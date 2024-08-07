@@ -156,10 +156,10 @@ class EnhancedCausalModel(nn.Module):
 
         # 综合评分，可以根据需要调整权重
         comprehensive_scores = (
-                normalized_influence * 0.4 +
-                normalized_performance * 0.25 +
-                normalized_cooperation * 0.25 +
-                normalized_innovation * 0.1
+                normalized_influence * 0.8 +
+                # normalized_performance * 0.25 +
+                # normalized_cooperation * 0.25 +
+                normalized_innovation * 0.2
         )
         return comprehensive_scores
 

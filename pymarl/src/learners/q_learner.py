@@ -135,7 +135,6 @@ class QLearner:
         loss = (masked_td_error ** 2).sum() / mask.sum()
         # print(loss)
 
-        
         # 计算蒸馏损失
         distillation_loss = 0
         for student_idx, teacher_idx in zip(bottom_agents, teacher_agents):
